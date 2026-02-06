@@ -6,7 +6,7 @@ import { IoLogoWhatsapp } from "react-icons/io5";
 import { useUser } from "@/contexts/UserContext";
 import { useChat } from "@/contexts/ChatContext";
 import { Button } from "./ui/button";
-import { CONTACT, VEHICLES, CONDITIONS, BOBOLOC_AVAILABILITY_URLS } from "@/data/chatKnowledge";
+import { CONTACT, VEHICLES, CONDITIONS, BOBOLOC_AVAILABILITY_URLS, SITE_INFO } from "@/data/chatKnowledge";
 import {
   calculateTotalPrice,
   calculateTransportPrice,
@@ -43,6 +43,9 @@ const quickSuggestions = [
   { icon: Car, label: "Info R8", message: "Donnez-moi les infos sur l'Audi R8" },
   { icon: MessageCircle, label: "Contact WhatsApp", message: "Je veux vous contacter par WhatsApp" },
   { icon: Instagram, label: "Contact Instagram", message: "Je veux vous suivre sur Instagram" },
+  { icon: Car, label: "Où êtes-vous ?", message: "Où êtes-vous situés ?" },
+  { icon: Calculator, label: "Transport", message: "Combien coûte le transport à Lausanne ?" },
+  { icon: MessageCircle, label: "Loue ton véhicule", message: "Comment rentabiliser mon véhicule ?" },
 ];
 
 const whatsappCta = () =>
@@ -238,12 +241,12 @@ const sendMessageToAI = async (
     };
   }
 
-  // Flotte / véhicules
-  if (lm.includes("véhicule") || lm.includes("flotte")) {
+  // Flotte / véhicules / supercars
+  if (lm.includes("véhicule") || lm.includes("vehicule") || lm.includes("flotte") || lm.includes("supercar") || lm.includes("voiture") || lm.includes("quels véhicules")) {
     const lines = VEHICLES.map(
       (v, i) => `${i + 1}️⃣ **${v.name}** — Dès ${v.pricePerDay} CHF/jour • ${v.description.slice(0, 50)}…`
     ).join("\n\n");
-    return { content: `🚗 **Notre flotte:**\n\n${lines}\n\nBasés en **${CONTACT.location}**.` + whatsappCta() };
+    return { content: `🚗 **Notre flotte:**\n\n${lines}\n\n+ **Catalogue des particuliers** (véhicules proposés par des propriétaires).\n\nBasés en **${CONTACT.location}**.` + whatsappCta() };
   }
 
   // Conditions
@@ -252,20 +255,155 @@ const sendMessageToAI = async (
     return { content: `📋 **Conditions de location:**\n\n${list}` + whatsappCta() };
   }
 
-  // Transport / livraison
+  // Transport / livraison / Lausanne / Genève
   if (
     lm.includes("transport") ||
     lm.includes("livraison") ||
     lm.includes("livrer") ||
-    lm.includes("domicile")
+    lm.includes("domicile") ||
+    lm.includes("lausanne") ||
+    lm.includes("genève") ||
+    lm.includes("geneve")
   ) {
-    return { content: `🚚 **Transport & livraison**\n\n• **Tarif :** 2 CHF / km\n• **Point A** — Evionnaz (siège Rebellion Luxury)\n• **Point B** — Livraison au client (votre adresse)\n• **Point C** — Retour à Evionnaz\n\nPrix du transport = (A → B → C) × 2 CHF/km.\n\n📱 Pour une estimation précise ou réserver une livraison : **WhatsApp** au **${CONTACT.phone}**.` + whatsappCta() };
+    const cityHint = (lm.includes("lausanne") || lm.includes("genève") || lm.includes("geneve"))
+      ? `\nNous livrons à **Lausanne**, **Genève** et partout en Suisse romande — tarif au km. `
+      : "";
+    return { content: `🚚 **Transport & livraison**\n\n• **Tarif :** ${SITE_INFO.transportPricePerKm} CHF / km\n• **Point A** — Evionnaz (siège Rebellion Luxury)\n• **Point B** — Livraison au client (votre adresse)\n• **Point C** — Retour à Evionnaz\n\nPrix = (A → B → C) × ${SITE_INFO.transportPricePerKm} CHF/km.${cityHint}\n\n• Location min. 24h — prix sur demande\n• Location min. 48h — offert si vous avez déjà loué chez nous\n• Acompte obligatoire\n\n📱 Estimation précise : **WhatsApp** au **${CONTACT.phone}**.` + whatsappCta() };
   }
 
-  // Réponse de repli : l'IA n'a pas trouvé de réponse — suggestions 1-clic juste en dessous
+  // Localisation / où êtes-vous / Evionnaz / Valais
+  if (
+    (lm.includes("où") || lm.includes("ou")) && (lm.includes("êtes") || lm.includes("etes") || lm.includes("trouver") || lm.includes("situ") || lm.includes("sont")) ||
+    lm.includes("localisation") || lm.includes("evionnaz") || lm.includes("valais") ||
+    (lm.includes("adresse") && (lm.includes("siege") || lm.includes("siège")))
+  ) {
+    return { content: `📍 **Localisation**\n\nNous sommes basés à **${SITE_INFO.location}** (Valais), au cœur de la Suisse romande.\n\n• **Récupération du véhicule :** Evionnaz\n• **Zone de livraison :** Suisse romande (transport au km)\n• **Carte :** [Voir sur Google Maps](${CONTACT.googleMapsUrl})\n\nPour louer ou réserver : **WhatsApp** au **${CONTACT.phone}**.` + whatsappCta() };
+  }
+
+  // Âge minimum / permis
+  if (lm.includes("âge") || lm.includes("age") || lm.includes("ans") && (lm.includes("minimum") || lm.includes("avoir")) || lm.includes("permis") && lm.includes("année")) {
+    return { content: `📋 **Conditions d'âge & permis**\n\n• **Âge minimum :** ${SITE_INFO.minAge} ans\n• **Permis de conduire :** valide, détenu depuis au moins ${SITE_INFO.minPermitYears} ans\n• **Documents requis :** pièce d'identité, permis, justificatif de domicile\n• **Caution :** par carte bancaire (Audi R8 : 3'000 CHF, McLaren 570S : 10'000 CHF)\n\n📱 Pour réserver : **WhatsApp** au **${CONTACT.phone}**.` + whatsappCta() };
+  }
+
+  // Caution / garantie
+  if (lm.includes("caution") || lm.includes("garantie") || lm.includes("dépôt") || lm.includes("depot")) {
+    const cautions = VEHICLES.map((v) => `• **${v.name}** : ${v.specs.caution}`).join("\n");
+    return { content: `🔒 **Caution**\n\n${cautions}\n\nLa caution est bloquée par carte bancaire. Elle est libérée à la restitution du véhicule dans l'état convenu.\n\n📱 Questions ? **WhatsApp** au **${CONTACT.phone}**.` + whatsappCta() };
+  }
+
+  // Km inclus / kilométrage
+  if (lm.includes("km") && (lm.includes("inclus") || lm.includes("forfait") || lm.includes("kilom")) || lm.includes("kilometrage")) {
+    const kmInfo = VEHICLES.map((v) => {
+      const p = v.pricing[0];
+      return `• **${v.name}** — Journée : ${p.km}, forfaits week-end/mois : plus de km inclus`;
+    }).join("\n");
+    return { content: `📏 **Kilométrage inclus**\n\n${kmInfo}\n\nAu-delà du forfait : 0,50 CHF/km. Détails complets sur la page **Véhicules** ou **Calculez le prix**.\n\n📱 Estimation sur mesure : **WhatsApp** au **${CONTACT.phone}**.` + whatsappCta() };
+  }
+
+  // Loue ton véhicule / rentabiliser / particuliers
+  if (
+    lm.includes("loue ton") || lm.includes("louer mon") || lm.includes("rentabiliser") ||
+    lm.includes("mettre en location") || lm.includes("particulier") || lm.includes("catalogue des particuliers") ||
+    lm.includes("véhicule hors") || lm.includes("hors rebellion")
+  ) {
+    return { content: `🚗 **Loue ton véhicule**\n\nVous souhaitez **rentabiliser votre véhicule** ? Rebellion Luxury propose un service de conciergerie automobile premium :\n\n• Revenus passifs mensuels\n• Gestion complète (location, sinistres, nettoyage)\n• Shooting photo & vidéo offerts\n• Forte visibilité sur nos réseaux\n• Conditions : véhicule homologué, assuré, expertisé\n\n📋 **Comment procéder :**\n1. Remplissez le formulaire sur **Loue ton véhicule**\n2. Envoyez des photos de votre véhicule\n3. Nous vous recontactons par WhatsApp ou téléphone\n\n• Maximum 3 demandes par jour\n• Consultez vos demandes sur **Voir mes demandes**\n\n📱 **WhatsApp** : **${CONTACT.phone}**` + whatsappCta() };
+  }
+
+  // Contact email / téléphone
+  if (lm.includes("email") || lm.includes("mail") || lm.includes("téléphone") || lm.includes("telephone") || lm.includes("joindre") || lm.includes("contacter")) {
+    if (lm.includes("email") || lm.includes("mail")) {
+      return { content: `📧 **Email**\n\n**${CONTACT.email}**\n\nPour une réponse rapide, privilégiez **WhatsApp** au **${CONTACT.phone}** — idéal pour les réservations !` + whatsappCta() };
+    }
+    if (lm.includes("téléphone") || lm.includes("telephone") || lm.includes("tél") || lm.includes("tel")) {
+      return { content: `📞 **Téléphone**\n\n**${CONTACT.phone}**\n\nOu contactez-nous sur **WhatsApp** : c'est le plus simple pour réserver ! → ${CONTACT.whatsappUrl}` + whatsappCta() };
+    }
+    return { content: `📱 **Nous contacter**\n\n• **WhatsApp** (recommandé) : **${CONTACT.phone}**\n• **Téléphone** : ${CONTACT.phone}\n• **Email** : ${CONTACT.email}\n\nLe plus rapide pour réserver : **WhatsApp** !` + whatsappCta() };
+  }
+
+  // Facebook / TikTok
+  if (lm.includes("facebook")) {
+    return { content: `📘 **Facebook**\n\nSuivez-nous : ${CONTACT.facebookUrl}\n\n📱 Pour réserver : **WhatsApp** au **${CONTACT.phone}** — le plus direct !` + whatsappCta() };
+  }
+  if (lm.includes("tiktok")) {
+    return { content: `🎵 **TikTok**\n\nRetrouvez-nous : ${CONTACT.tiktokUrl}\n\n📱 Pour réserver : **WhatsApp** au **${CONTACT.phone}** !` + whatsappCta() };
+  }
+
+  // À propos / qui êtes-vous / rebellion luxury
+  if (
+    lm.includes("à propos") || lm.includes("a propos") || lm.includes("qui êtes-vous") || lm.includes("c est quoi") ||
+    lm.includes("rebellion luxury") || lm.includes("rebellion luxe") || lm.includes("présentation")
+  ) {
+    return { content: `🏎️ **Rebellion Luxury**\n\nEntreprise de **location de véhicules haut de gamme** en Valais, spécialisée en supercars et sportives.\n\n• **Flotte :** Audi R8, McLaren 570S (+ catalogue particuliers)\n• **Zone :** Suisse romande — siège à Evionnaz\n• **Services :** location, transport sur plateau, conciergerie (Loue ton véhicule)\n• **Assurance & entretien** inclus, qualité premium\n\nPage complète : **À propos**` + whatsappCta() };
+  }
+
+  // Plan du site / pages / navigation
+  if (lm.includes("plan du site") || lm.includes("pages") || lm.includes("navigation") || lm.includes("menu") && lm.includes("quoi")) {
+    return { content: `🗺️ **Plan du site**\n\n• **Accueil** — Présentation\n• **Véhicules** — Catalogue + Catalogue des particuliers\n• **Calculez le prix** — Estimation tarifs\n• **Loue ton véhicule** — Rentabiliser votre voiture\n• **Voir mes demandes** — Suivi des demandes\n• **À propos** — Notre histoire, conditions\n• **Transport** — Livraison à domicile\n• **Réseaux** — Instagram, Facebook, TikTok\n• **Espace pro** — Gestion véhicules particuliers\n• **Contact** — Email, téléphone, WhatsApp\n\nQue souhaitez-vous savoir ?` };
+  }
+
+  // Calculez le prix (lien)
+  if (lm.includes("calculez") || lm.includes("calculer") && lm.includes("prix") || lm.includes("simulateur")) {
+    return { content: `💰 **Calculez le prix**\n\nUtilisez la page **Calculez le prix** pour une estimation détaillée : véhicule, durée, km supplémentaires, transport.\n\nOu posez-moi la question : ex. *"Combien pour 2 jours avec l'Audi et 50 km de transport ?"*` };
+  }
+
+  // Documents requis / quoi apporter
+  if (lm.includes("document") || lm.includes("papier") || lm.includes("apporter") || lm.includes("fournir") || lm.includes("justificatif")) {
+    const list = RESERVATION_DOCS.map((d) => `• **${d}**`).join("\n");
+    return { content: `📋 **Documents pour réserver**\n\n${list}\n\nAcompte obligatoire. Caution par carte bancaire.\n\n📱 Envoyez vos documents sur **WhatsApp** au **${CONTACT.phone}** pour finaliser.` + whatsappCta() };
+  }
+
+  // Paiement / acompte
+  if (lm.includes("paiement") || lm.includes("payer") || lm.includes("acompte") || lm.includes("carte bancaire")) {
+    return { content: `💳 **Paiement**\n\n• **Acompte obligatoire** pour réserver le véhicule\n• **Caution** par carte bancaire (Audi : 3'000 CHF, McLaren : 10'000 CHF)\n• Détails des modalités lors de la réservation\n\n📱 **WhatsApp** au **${CONTACT.phone}** pour convenir des détails.` + whatsappCta() };
+  }
+
+  // Assurance
+  if (lm.includes("assurance")) {
+    return { content: `🛡️ **Assurance**\n\nTous nos véhicules sont **entièrement assurés**. Mécanique et entretien inclus pour une tranquillité d'esprit totale.\n\n📱 Questions spécifiques : **WhatsApp** au **${CONTACT.phone}**.` + whatsappCta() };
+  }
+
+  // Suisse / étranger / frontière
+  if (lm.includes("suisse") || lm.includes("étranger") || lm.includes("etranger") || lm.includes("frontière") || lm.includes("sortir")) {
+    return { content: `🇨🇭 **Zone de circulation**\n\nLe véhicule doit **rester en Suisse** sauf accord préalable.\n\nNous sommes basés en **Suisse romande** (Evionnaz, Valais). Livraison possible partout en Suisse romande (transport au km).\n\n📱 Pour une exception (sortie Suisse) : contactez-nous au **${CONTACT.phone}**.` + whatsappCta() };
+  }
+
+  // Comparaison Audi vs McLaren
+  if ((lm.includes("audi") || lm.includes("r8")) && (lm.includes("mclaren") || lm.includes("570")) && !lm.includes("louer")) {
+    return { content: `⚖️ **Audi R8 vs McLaren 570S**\n\n**Audi R8 V8** — Dès 470 CHF/jour • 420 CH • Portes conventionnelles • Idéal week-end\n\n**McLaren 570S** — Dès 950 CHF/jour • 570 CH • Portes papillon • Supercar pure\n\nLes deux : transmission auto, caution (3k/10k CHF). Détails et tarifs complets sur **Véhicules**.\n\n📱 Pour choisir selon vos dates : **WhatsApp** au **${CONTACT.phone}**.` + whatsappCta() };
+  }
+
+  // Vérifier ma demande / statut
+  if (lm.includes("verifier") || lm.includes("vérifier") || lm.includes("demande") && (lm.includes("statut") || lm.includes("suivi")) || lm.includes("mes demandes")) {
+    return { content: `📋 **Voir mes demandes**\n\nSi vous avez soumis une demande (Loue ton véhicule), consultez son statut sur la page **Vérifier ma demande**.\n\nVous serez notifié par téléphone ou WhatsApp lors du traitement (en attente, accepté, refusé).\n\n📱 Questions : **WhatsApp** au **${CONTACT.phone}**.` + whatsappCta() };
+  }
+
+  // Espace pro
+  if (lm.includes("espace pro")) {
+    return { content: `👔 **Espace pro**\n\nL'Espace Pro permet aux propriétaires de véhicules (catalogue des particuliers) de gérer leurs annonces : fiche détaillée, tarifs, disponibilités, historique des demandes.\n\nAccès après acceptation de votre demande **Loue ton véhicule**.\n\n📱 **WhatsApp** : **${CONTACT.phone}**` + whatsappCta() };
+  }
+
+  // Rentabilité
+  if (lm.includes("rentabilité") || lm.includes("rentabilite")) {
+    return { content: `📈 **Rentabilité**\n\nConsultez la page **Rentabilité** pour une estimation des revenus potentiels de votre véhicule en location.\n\nRebellion Luxury propose une **estimation gratuite et sans engagement**.\n\n📱 Pour en savoir plus : **WhatsApp** au **${CONTACT.phone}**.` + whatsappCta() };
+  }
+
+  // Réseaux (général)
+  if (lm.includes("réseaux") || lm.includes("reseaux") || lm.includes("suivre")) {
+    return { content: `📱 **Nos réseaux**\n\n• **Instagram :** ${CONTACT.instagramUrl}\n• **Facebook :** ${CONTACT.facebookUrl}\n• **TikTok :** ${CONTACT.tiktokUrl}\n\nPour **réserver** : **WhatsApp** au **${CONTACT.phone}** — le plus rapide !` + whatsappCta() };
+  }
+
+  // Fallback intelligent — suggestions selon mots-clés détectés
+  const suggestions: string[] = [];
+  if (/audi|r8|mclaren|570|voiture|véhicule|auto/.test(lm)) suggestions.push("Infos sur l'Audi R8", "Infos sur la McLaren 570S", "Quels sont les tarifs ?");
+  if (/prix|tarif|combien|coût|cout/.test(lm)) suggestions.push("Calculez le prix pour 2 jours Audi", "Calculez le prix pour 3 jours McLaren");
+  if (/louer|réserver|reserver|location/.test(lm)) suggestions.push("Comment réserver ?", "Je veux louer la McLaren 570S", "Contact WhatsApp");
+  if (/dispo|disponib|date|libre/.test(lm)) suggestions.push("Quelles sont les disponibilités ?");
+  if (/contact|joindre|écrire|ecrire|appeler/.test(lm)) suggestions.push("Contact WhatsApp", "Je veux vous contacter par WhatsApp");
+  if (suggestions.length === 0) suggestions.push(...FALLBACK_SUGGESTIONS);
+
   return {
-    content: `Merci pour votre question ! Après analyse du site, je n'ai pas trouvé de réponse précise. **Reformulez ou choisissez une suggestion ci-dessous** :`,
-    suggestions: FALLBACK_SUGGESTIONS,
+    content: `Je n'ai pas trouvé de réponse précise à votre question. **Choisissez une suggestion ci-dessous** ou reformulez — je connais les véhicules, tarifs, réservations, transport, conditions, Loue ton véhicule et tout le reste du site !`,
+    suggestions: [...new Set(suggestions)].slice(0, 6),
   };
 };
 

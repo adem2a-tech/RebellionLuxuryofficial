@@ -73,3 +73,26 @@ export const CONDITIONS = [
   "Caution par carte bancaire",
   "Le véhicule doit rester en Suisse sauf accord préalable",
 ] as const;
+
+/** Infos site — pour le chat IA (pages, services) */
+export const SITE_INFO = {
+  location: "Evionnaz, Valais",
+  region: "Suisse romande",
+  transportPricePerKm: 2,
+  extraKmPrice: 0.5,
+  minAge: 25,
+  minPermitYears: 2,
+  pages: {
+    vehicules: "/vehicules",
+    catalogueParticuliers: "/vehicules?hors-rebellion=1",
+    calculerPrix: "/calculer-prix",
+    transport: "/transport",
+    loueTonVehicule: "/loue-ton-vehicule",
+    verifierDemande: "/verifier-ma-demande",
+    rentabilite: "/rentabilite",
+    reseaux: "/reseaux",
+    aPropos: "/a-propos",
+    contact: "/contact",
+    espacePro: "/espace-pro",
+  },
+} as const;

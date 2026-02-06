@@ -1,5 +1,6 @@
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Play } from "lucide-react";
 
 interface HeroProps {
   onOpenChat?: () => void;
@@ -7,6 +8,70 @@ interface HeroProps {
 }
 
 const Hero = ({ onOpenChat, onCheckAvailability }: HeroProps) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [showPlayButton, setShowPlayButton] = useState(false);
+  const playAttemptRef = useRef(false);
+  const showPlayButtonRef = useRef(showPlayButton);
+  showPlayButtonRef.current = showPlayButton;
+
+  const attemptPlay = useCallback(async () => {
+    const video = videoRef.current;
+    if (!video || playAttemptRef.current) return;
+    playAttemptRef.current = true;
+
+    try {
+      video.muted = true; // requis pour autoplay sur iOS / mobile
+      video.playsInline = true;
+      await video.play();
+      setShowPlayButton(false);
+    } catch {
+      setShowPlayButton(true);
+    } finally {
+      playAttemptRef.current = false;
+    }
+  }, []);
+
+  // Lecture au montage — canplay = prêt pour mobile (plus fiable que loadeddata)
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const onCanPlay = () => {
+      // court délai : certains mobiles ont besoin que le viewport soit prêt
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => attemptPlay());
+      });
+    };
+
+    if (video.readyState >= 3) {
+      onCanPlay();
+    } else {
+      video.addEventListener("canplay", onCanPlay, { once: true });
+    }
+
+    return () => video.removeEventListener("canplay", onCanPlay);
+  }, [attemptPlay]);
+
+  // Reprise quand l'utilisateur revient sur l'onglet (iOS met en pause en arrière-plan)
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState !== "visible") return;
+      const video = videoRef.current;
+      if (!video || !video.paused || showPlayButtonRef.current) return;
+      video.muted = true;
+      video.play().catch(() => {});
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, []);
+
+  const handlePlayClick = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = true;
+    video.play().then(() => setShowPlayButton(false)).catch(() => {});
+  }, []);
+
   return (
     <section
       id="hero"
@@ -22,17 +87,34 @@ const Hero = ({ onOpenChat, onCheckAvailability }: HeroProps) => {
       >
         {/* Vidéo en plein écran : remplit toute la section Hero */}
         <video
+          ref={videoRef}
           autoPlay
           loop
           muted
           playsInline
+          preload="auto"
           poster="/hero-background.png"
+          disablePictureInPicture
+          disableRemotePlayback
           className="absolute inset-0 w-full h-full object-cover object-center hero-background-media"
           aria-hidden="true"
         >
           <source src="/hero-background.mp4" type="video/mp4" />
           <source src="/hero-background.webm" type="video/webm" />
         </video>
+        {/* Bouton lecture visible uniquement si autoplay bloqué (ex. mobile) */}
+        {showPlayButton && (
+          <button
+            type="button"
+            onClick={handlePlayClick}
+            className="absolute inset-0 z-[1] flex items-center justify-center bg-black/30 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            aria-label="Lancer la vidéo"
+          >
+            <span className="flex h-20 w-20 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition hover:bg-white/30 active:scale-95">
+              <Play className="h-10 w-10 text-white fill-white ml-1" />
+            </span>
+          </button>
+        )}
         {/* Overlays sombres — vidéo visible, teinte sombre sans reflets blancs */}
         <div className="absolute inset-0 bg-black/20" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/35 to-black/25" />
