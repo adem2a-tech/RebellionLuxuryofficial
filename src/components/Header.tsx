@@ -168,7 +168,7 @@ const Header = ({ onOpenChat }: HeaderProps) => {
               <nav className="flex flex-col gap-0 py-4">
                 {navItems.flatMap((item) => {
                   // Onglets majeurs : blanc + ombre pour bien les distinguer des sous-éléments
-                  const majorTabClass = "block px-4 py-3 min-h-[44px] flex items-center text-sm font-semibold uppercase tracking-wider text-white hover:text-white hover:bg-muted/50 active:bg-muted touch-manipulation [text-shadow:0_1px_3px_rgba(0,0,0,0.6),0_0_12px_rgba(255,255,255,0.15)]";
+                  const majorTabClass = "block px-4 py-3 min-h-[44px] flex items-center text-sm font-semibold uppercase tracking-wider text-[#ffffff] hover:text-[#ffffff] hover:bg-muted/50 active:bg-muted touch-manipulation";
                   const subTabClass = "block px-6 py-3 min-h-[44px] flex items-center text-sm font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-muted/50 active:bg-muted touch-manipulation";
                   if ("subItems" in item && item.subItems) {
                     return [
