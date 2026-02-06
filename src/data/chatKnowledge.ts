@@ -3,9 +3,9 @@
  */
 
 export const CONTACT = {
-  phone: "+41 79 123 45 67",
-  phoneRaw: "41791234567",
-  whatsappUrl: "https://wa.me/41791234567",
+  phone: "+41 79 913 01 28",
+  phoneRaw: "41799130128",
+  whatsappUrl: "https://wa.me/41799130128",
   instagramUrl: "https://www.instagram.com/rebellion.luxury/",
   facebookUrl: "https://www.facebook.com/people/Rebellion-luxury/61585966329317/",
   tiktokUrl: "https://www.tiktok.com/@rebellion.luxury",
@@ -18,7 +18,7 @@ export const CONTACT = {
 /** Créateur du site */
 export const CREATOR = {
   name: "Adem Elite",
-  whatsappUrl: "https://wa.me/41791234567",
+  whatsappUrl: "https://wa.me/41799130128",
 } as const;
 
 /** Liens Boboloc — disponibilités en temps réel (mis à jour côté Boboloc) */

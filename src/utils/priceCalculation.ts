@@ -1,9 +1,9 @@
 /**
  * Calcul des prix : location (véhicule + km) et transport.
- * Utilisé par la page CalculerPrix et l'IA.
+ * Utilise les forfaits réels du site (Lundi au vendredi, Week-end, etc.)
  */
 
-import { getAllVehicles, getVehicleBySlug } from "@/data/vehicles";
+import { getAllVehicles, getVehicleBySlug, type VehicleData, type PricingTier } from "@/data/vehicles";
 
 export const TRANSPORT_PRICE_PER_KM = 2; // CHF
 export const EXTRA_KM_PRICE = 0.5; // CHF/km au-delà du forfait inclus
@@ -18,6 +18,88 @@ export interface PriceBreakdown {
   days: number;
   extraKm: number;
   transportKm: number;
+  forfaitLabel?: string;
+  kmInclus?: number;
+}
+
+/** Extrait le montant numérique d'un prix "4'490 CHF" ou "950 CHF" */
+function parsePriceValue(priceStr: string): number {
+  return parseInt(priceStr.replace(/[\s']/g, ""), 10) || 0;
+}
+
+/** Extrait le nombre de km d'une string "1'000 km" ou "200 km" */
+function parseKmValue(kmStr: string): number {
+  return parseInt(kmStr.replace(/[\s']/g, ""), 10) || 0;
+}
+
+/** Mapping mots-clés → label de forfait (vehicles.ts) */
+const DURATION_KEYWORDS: { keywords: RegExp[]; tierPattern: string }[] = [
+  { keywords: [/lundi\s*( au | à | a )\s*vendredi/i, /lun\.?\s*vend/i, /5\s*j(?:our)?s?/], tierPattern: "Lundi au vendredi" },
+  { keywords: [/lundi\s*( au | à | a )\s*lundi/i, /semaine\s*complète/i, /7\s*j(?:our)?s?/], tierPattern: "Lundi au lundi" },
+  { keywords: [/vendredi\s*( au | à | a )\s*dimanche/i, /week[- ]?end/i, /weekend/i, /3\s*j(?:our)?s?/], tierPattern: "Vendredi au dimanche" },
+  { keywords: [/vendredi\s*( au | à | a )\s*lundi/i, /4\s*j(?:our)?s?/], tierPattern: "Vendredi au lundi" },
+  { keywords: [/mois/i, /30\s*j(?:our)?s?/], tierPattern: "Mois (30 jours)" },
+  { keywords: [/journée/i, /24h/i, /1\s*j(?:our)?\b/], tierPattern: "Journée (24h)" },
+];
+
+function findMatchingTier(vehicle: VehicleData, durationKeyOrDays: string | number): { tier: PricingTier; label: string } | null {
+  const pricing = vehicle.pricing;
+  if (!pricing?.length) return null;
+
+  if (typeof durationKeyOrDays === "number") {
+    const days = durationKeyOrDays;
+    const m = (label: string) => label.toLowerCase();
+    if (days <= 1) return { tier: pricing.find((p) => m(p.duration).includes("journée")) || pricing[0], label: "Journée (24h)" };
+    if (days >= 25) return { tier: pricing.find((p) => m(p.duration).includes("mois")) || pricing[pricing.length - 1], label: "Mois (30 jours)" };
+    if (days >= 6) return { tier: pricing.find((p) => m(p.duration).includes("lundi au lundi")) || pricing.find((p) => m(p.duration).includes("lundi"))!, label: "Lundi au lundi" };
+    if (days >= 4) return { tier: pricing.find((p) => m(p.duration).includes("vendredi au lundi")) || pricing.find((p) => m(p.duration).includes("vendredi"))!, label: "Vendredi au lundi" };
+    if (days >= 3) return { tier: pricing.find((p) => m(p.duration).includes("vendredi au dimanche")) || pricing.find((p) => m(p.duration).includes("vendredi"))!, label: "Vendredi au dimanche" };
+    if (days >= 2) return { tier: pricing.find((p) => m(p.duration).includes("lundi au vendredi")) || pricing.find((p) => m(p.duration).includes("lundi")) || pricing[0], label: "Lundi au vendredi" };
+    return { tier: pricing.find((p) => m(p.duration).includes("journée")) || pricing[0], label: "Journée (24h)" };
+  }
+
+  const key = durationKeyOrDays.toLowerCase();
+  for (const p of pricing) {
+    if (p.duration.toLowerCase().includes(key) || key.includes(p.duration.toLowerCase().split(" ")[0])) {
+      return { tier: p, label: p.duration };
+    }
+  }
+  return null;
+}
+
+/** Calcule le prix en utilisant les forfaits réels du site */
+export function calculatePriceFromSite(
+  vehicleSlug: string,
+  durationKeyOrDays: string | number,
+  requestedKmOrExtra: number,
+  transportKm: number,
+  isExtraKm = false
+): Omit<PriceBreakdown, "days" | "extraKm"> & { forfaitLabel: string; kmInclus: number; extraKm: number } | null {
+  const vehicle = getVehicleBySlug(vehicleSlug);
+  if (!vehicle) return null;
+  const matched = findMatchingTier(vehicle, durationKeyOrDays);
+  if (!matched) return null;
+  const { tier, label } = matched;
+  const locationPrice = parsePriceValue(tier.price);
+  const kmInclus = parseKmValue(tier.km);
+  const extraKm = isExtraKm ? requestedKmOrExtra : Math.max(0, requestedKmOrExtra - kmInclus);
+  const extraKmPrice = Math.round(extraKm * EXTRA_KM_PRICE);
+  const transportPrice = transportKm * TRANSPORT_PRICE_PER_KM;
+  const total = locationPrice + extraKmPrice + transportPrice;
+  const days = typeof durationKeyOrDays === "number" ? durationKeyOrDays : 1;
+  return {
+    vehicleName: vehicle.name,
+    locationPrice,
+    extraKmPrice,
+    transportPrice,
+    total,
+    caution: vehicle.specs.caution,
+    days,
+    transportKm,
+    forfaitLabel: label,
+    kmInclus,
+    extraKm,
+  };
 }
 
 export function calculateRentalPrice(
@@ -25,15 +107,14 @@ export function calculateRentalPrice(
   days: number,
   extraKm: number
 ): { locationPrice: number; extraKmPrice: number; caution: string; vehicleName: string } | null {
-  const vehicle = getVehicleBySlug(vehicleSlug);
-  if (!vehicle) return null;
-  const locationPrice = vehicle.pricePerDay * days;
-  const extraKmPrice = extraKm > 0 ? Math.round(extraKm * EXTRA_KM_PRICE) : 0;
+  const result = calculatePriceFromSite(vehicleSlug, days, 0, 0);
+  if (!result) return null;
+  const extraKmPrice = Math.round(extraKm * EXTRA_KM_PRICE);
   return {
-    locationPrice,
+    locationPrice: result.locationPrice,
     extraKmPrice,
-    caution: vehicle.specs.caution,
-    vehicleName: vehicle.name,
+    caution: result.caution,
+    vehicleName: result.vehicleName,
   };
 }
 
@@ -47,20 +128,20 @@ export function calculateTotalPrice(
   extraKm: number,
   transportKm: number
 ): PriceBreakdown | null {
-  const rental = calculateRentalPrice(vehicleSlug, days, extraKm);
-  if (!rental) return null;
-  const transportPrice = calculateTransportPrice(transportKm);
-  const total = rental.locationPrice + rental.extraKmPrice + transportPrice;
+  const result = calculatePriceFromSite(vehicleSlug, days, extraKm, transportKm, true);
+  if (!result) return null;
   return {
-    vehicleName: rental.vehicleName,
-    locationPrice: rental.locationPrice,
-    extraKmPrice: rental.extraKmPrice,
-    transportPrice,
-    total,
-    caution: rental.caution,
-    days,
-    extraKm,
-    transportKm,
+    vehicleName: result.vehicleName,
+    locationPrice: result.locationPrice,
+    extraKmPrice: result.extraKmPrice,
+    transportPrice: result.transportPrice,
+    total: result.total,
+    caution: result.caution,
+    days: result.days,
+    extraKm: result.extraKm,
+    transportKm: result.transportKm,
+    forfaitLabel: result.forfaitLabel,
+    kmInclus: result.kmInclus,
   };
 }
 
@@ -77,28 +158,52 @@ export function findVehicleByQuery(query: string): { slug: string; name: string 
   return null;
 }
 
-/** Extrait jours, km, transport km d'un message (pour l'IA) */
-export function parsePriceQuery(message: string): {
+/** Résultat du parsing d'une requête prix */
+export interface ParsedPriceQuery {
   days?: number;
+  requestedKm?: number;
   extraKm?: number;
   transportKm?: number;
   vehicleQuery?: string;
-} {
-  const m = message.toLowerCase();
-  const result: { days?: number; extraKm?: number; transportKm?: number; vehicleQuery?: string } = {};
-  const dayMatch = m.match(/(\d+)\s*(?:jour|j(?:our)?s?|day)/i);
-  if (dayMatch) result.days = Math.max(1, parseInt(dayMatch[1], 10));
-  const transportMatch = m.match(/(?:transport|livraison|liver?)\s*(?:de\s*)?(\d+)\s*km/i) ||
+  durationKey?: string;
+}
+
+/** Extrait jours, km, transport, forfait du message (pour l'IA) */
+export function parsePriceQuery(message: string): ParsedPriceQuery {
+  const m = message.toLowerCase().trim();
+  const result: ParsedPriceQuery = {};
+
+  // Forfait par mots-clés : "lundi à vendredi", "week-end", etc.
+  if (/lundi\s*(au|à|a)\s*vendredi|5\s*j(?:our)?s?|5j/.test(m)) result.durationKey = "Lundi au vendredi";
+  else if (/lundi\s*(au|à|a)\s*lundi|semaine|7\s*j(?:our)?s?|7j/.test(m)) result.durationKey = "Lundi au lundi";
+  else if (/vendredi\s*(au|à|a)\s*dimanche|week[- ]?end|weekend|3\s*j(?:our)?s?|3j/.test(m)) result.durationKey = "Vendredi au dimanche";
+  else if (/vendredi\s*(au|à|a)\s*lundi|4\s*j(?:our)?s?|4j/.test(m)) result.durationKey = "Vendredi au lundi";
+  else if (/mois|30\s*j(?:our)?s?/.test(m)) result.durationKey = "Mois (30 jours)";
+
+  // Jours : "6j", "6 jours", "mclaren 6", etc.
+  const dayMatch =
+    m.match(/(\d+)\s*j(?:our)?s?\b/i) ||
+    m.match(/(\d+)\s*(?:jour|jours|day|days)\b/i) ||
+    m.match(/(?:pour|pendant)\s+(\d+)\s*(?:j|jour|jours)?/i) ||
+    m.match(/(\d+)\s*(?:j\b)/) ||
+    m.match(/(?:mclaren|audi|r8|570)\s+(\d{1,2})\b/i) ||
+    m.match(/\b(\d{1,2})\s+(?:mclaren|audi|r8|570)/i);
+  if (dayMatch) result.days = Math.min(365, Math.max(1, parseInt(dayMatch[1], 10)));
+
+  const transportMatch =
+    m.match(/(?:transport|livraison|liver?)\s*(?:de\s*)?(\d+)\s*km/i) ||
     m.match(/(\d+)\s*km\s*(?:de\s*)?(?:transport|livraison)/i) ||
     m.match(/(\d+)\s*km\s*(?:pour\s+)?(?:le\s+)?transport/i);
   if (transportMatch) result.transportKm = Math.max(0, parseInt(transportMatch[1], 10));
-  const extraKmMatch = m.match(/(\d+)\s*km\s*(?:en\s+plus|suppl|sup\.|supplémentaire)/i) ||
-    m.match(/(?:plus\s+)?(\d+)\s*km/i);
-  if (extraKmMatch && !result.transportKm) result.extraKm = Math.max(0, parseInt(extraKmMatch[1], 10));
-  else if (m.includes("km") && !result.transportKm) {
-    const anyKm = m.match(/(\d+)\s*km/i);
-    if (anyKm) result.extraKm = Math.max(0, parseInt(anyKm[1], 10));
+
+  // "400 km" = km total souhaités ; "200 km en plus" = km supplémentaires
+  const extraKmMatch = m.match(/(\d+)\s*km\s*(?:en\s+plus|suppl|sup\.|supplémentaire)/i);
+  if (extraKmMatch) result.extraKm = Math.max(0, parseInt(extraKmMatch[1], 10));
+  else if (m.match(/(\d+)\s*km/i) && !result.transportKm && !/transport|livraison/.test(m)) {
+    const val = parseInt(m.match(/(\d+)\s*km/)?.[1] || "0", 10);
+    if (val > 0) result.requestedKm = val;
   }
+
   if (m.includes("audi") || m.includes("r8")) result.vehicleQuery = "audi r8";
   if (m.includes("mclaren") || m.includes("570")) result.vehicleQuery = "mclaren 570";
   return result;

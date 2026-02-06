@@ -8,6 +8,7 @@ import { useChat } from "@/contexts/ChatContext";
 import { Button } from "./ui/button";
 import { CONTACT, VEHICLES, CONDITIONS, BOBOLOC_AVAILABILITY_URLS, SITE_INFO } from "@/data/chatKnowledge";
 import {
+  calculatePriceFromSite,
   calculateTotalPrice,
   calculateTransportPrice,
   findVehicleByQuery,
@@ -103,6 +104,34 @@ const sendMessageToAI = async (
     return {
       content: `Je suis **Rebellion IA**, votre assistant. Je connais tout le site sur le bout des doigts ! Je peux vous renseigner sur : véhicules (Audi R8, McLaren 570S), tarifs, réservations, disponibilités, transport, conditions. Posez-moi vos questions !`,
     };
+  }
+
+  // PRIORITÉ : Calcul prix avec forfaits réels — avant tout bloc "Louer"
+  const parsed = parsePriceQuery(messages[messages.length - 1].content);
+  const hasVehicle = parsed.vehicleQuery || lm.includes("audi") || lm.includes("r8") || lm.includes("mclaren") || lm.includes("570");
+  const hasPriceIntent = parsed.days !== undefined || parsed.durationKey || parsed.requestedKm !== undefined || parsed.extraKm !== undefined || /combien|prix|tarif|coût|cout|estimation/.test(lm);
+  if (hasVehicle && hasPriceIntent) {
+    const vFromContext = vehicleName ? findVehicleByQuery(vehicleName) : null;
+    const vFromMsg = parsed.vehicleQuery ? findVehicleByQuery(parsed.vehicleQuery) : findVehicleByQuery(lm);
+    const vehicleSlug = vFromContext?.slug ?? vFromMsg?.slug;
+    const durationInput = parsed.durationKey ?? parsed.days ?? 1;
+    const requestedKm = parsed.requestedKm ?? 0;
+    const extraKm = parsed.extraKm ?? 0;
+    const transportKm = parsed.transportKm ?? 0;
+    const daysLabel = parsed.days ? `${parsed.days} jour${parsed.days > 1 ? "s" : ""}` : (parsed.durationKey || "1 jour");
+    if (vehicleSlug) {
+      const result = extraKm > 0
+        ? calculatePriceFromSite(vehicleSlug, durationInput, extraKm, transportKm, true)
+        : calculatePriceFromSite(vehicleSlug, durationInput, requestedKm, transportKm, false);
+      if (result) {
+        let text = `💰 **Prix pour ${result.vehicleName}** — ${result.forfaitLabel} (${daysLabel})\n\n`;
+        text += `• **Location** : **${result.locationPrice} CHF** (${result.kmInclus} km inclus)\n`;
+        if (result.extraKm > 0) text += `• **Km supplémentaires** (${result.extraKm} km) : ~${result.extraKmPrice} CHF\n`;
+        if (result.transportKm > 0) text += `• **Transport** (${result.transportKm} km) : ${result.transportPrice} CHF\n`;
+        text += `\n**Total : ${result.total} CHF**\n\n🔒 Caution : ${result.caution}`;
+        return { content: text + whatsappCta() };
+      }
+    }
   }
 
   // Contexte véhicule : utilisateur veut louer → on envoie le formulaire réservation (CI, permis, justificatif)
@@ -654,13 +683,13 @@ const AIAssistant = ({ isOpen, onToggle, initialMessage }: AIAssistantProps) => 
                       {renderContent(message.content)}
                     </p>
                     {message.role === "assistant" && message.suggestions && message.suggestions.length > 0 && (
-                      <div className="mt-3 pt-3 border-t border-border/50 flex flex-wrap gap-1.5">
+                      <div className="mt-2 pt-2 border-t border-border/40 flex flex-wrap gap-1">
                         {message.suggestions.map((s, i) => (
                           <button
                             key={i}
                             type="button"
                             onClick={() => handleQuickSuggestion(s)}
-                            className="px-2.5 py-1 rounded-lg bg-muted/80 hover:bg-primary/20 hover:border-primary/40 border border-transparent text-xs font-medium transition-colors"
+                            className="px-2 py-1 rounded-md bg-muted/70 hover:bg-primary/15 border border-transparent hover:border-primary/30 text-[11px] font-medium transition-colors"
                           >
                             {s}
                           </button>
@@ -705,30 +734,26 @@ const AIAssistant = ({ isOpen, onToggle, initialMessage }: AIAssistantProps) => 
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Quick Suggestions — scroll horizontal sur mobile */}
-            {messages.length <= 4 && !isLoading && (
-              <div className="px-4 sm:px-5 pb-2 shrink-0 overflow-x-auto overscroll-x-contain">
-                <p className="text-xs text-muted-foreground mb-2">Suggestions :</p>
-                <div className="flex flex-wrap gap-2">
-                  {quickSuggestions.map((suggestion, index) => (
-                    <motion.button
-                      key={index}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      onClick={() => handleQuickSuggestion(suggestion.message)}
-                      className="flex items-center gap-2 px-3 py-2 rounded-xl bg-muted/50 border border-border hover:border-primary/50 hover:bg-primary/10 transition-all text-sm"
-                    >
-                      <suggestion.icon className="w-4 h-4 text-primary shrink-0" />
-                      <span>{suggestion.label}</span>
-                    </motion.button>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* Input — text-base (16px) évite le zoom iOS au focus */}
             <div className="p-4 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-border bg-card/50 shrink-0">
+              {/* Suggestions : compactes, dans la zone input — masquées dès qu'on envoie un message */}
+              {messages.length === 1 && !isLoading && (
+                <div className="mb-3 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                  <div className="flex gap-1.5 flex-nowrap">
+                    {quickSuggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => handleQuickSuggestion(suggestion.message)}
+                        className="shrink-0 flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-muted/60 border border-border/80 hover:border-primary/40 hover:bg-primary/10 transition-all text-[11px] font-medium text-foreground/90"
+                      >
+                        <suggestion.icon className="w-3 h-3 text-primary shrink-0" />
+                        <span className="whitespace-nowrap">{suggestion.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="flex gap-3">
                 <input
                   ref={inputRef}
