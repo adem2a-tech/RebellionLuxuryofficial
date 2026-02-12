@@ -32,16 +32,24 @@ const Footer = () => {
             transition={{ duration: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
             style={{ transformStyle: "preserve-3d" }}
           >
-            <div className="flex flex-col gap-1 mb-4">
-              <motion.img
-                src="/rebellion-luxury-logo.png"
-                alt="Rebellion Luxury"
-                className="h-12 lg:h-14 w-auto object-contain rounded-sm shadow-md max-w-[180px]"
-                whileHover={{ scale: 1.05, rotateY: 5 }}
+            <div className="flex items-center gap-3 mb-4">
+              <motion.div
+                className="rounded-full overflow-hidden h-9 w-9 lg:h-10 lg:w-10 shrink-0 border border-white/25 ring-1 ring-white/10"
+                whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.3 }}
-                style={{ transformStyle: "preserve-3d" }}
-              />
-              <span className="text-muted-foreground text-sm">Suisse, Evionnaz</span>
+              >
+                <img
+                  src="/rebellion-luxury-logo.png"
+                  alt="Rebellion Luxury"
+                  className="w-full h-full object-contain"
+                />
+              </motion.div>
+              <div className="flex flex-col">
+                <span className="font-display text-sm lg:text-base font-semibold uppercase tracking-[0.15em] text-foreground/95">
+                  Rebellion Luxury
+                </span>
+                <span className="text-muted-foreground text-xs">Suisse, Evionnaz</span>
+              </div>
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed mb-4">
               Location de véhicules de luxe en Suisse romande. Vivez l'expérience

@@ -1,19 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Send, Bot, User, Sparkles, Car, Instagram, Calculator } from "lucide-react";
+import { X, Send, User, Sparkles } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { IoLogoWhatsapp } from "react-icons/io5";
 import { useUser } from "@/contexts/UserContext";
 import { useChat } from "@/contexts/ChatContext";
 import { Button } from "./ui/button";
 import { CONTACT, VEHICLES, CONDITIONS, BOBOLOC_AVAILABILITY_URLS, SITE_INFO } from "@/data/chatKnowledge";
-import {
-  calculatePriceFromSite,
-  calculateTotalPrice,
-  calculateTransportPrice,
-  findVehicleByQuery,
-  parsePriceQuery,
-} from "@/utils/priceCalculation";
+import { findVehicleByQuery } from "@/utils/priceCalculation";
 
 const RESERVATION_DOCS = [
   "Carte d'identité",
@@ -26,7 +20,6 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
-  suggestions?: string[];
 }
 
 interface AIAssistantProps {
@@ -35,39 +28,17 @@ interface AIAssistantProps {
   initialMessage?: string;
 }
 
-// Suggestions rapides au clic sur Chat IA
-const quickSuggestions = [
-  { icon: Car, label: "Louez McLaren", message: "Je veux louer la McLaren 570S" },
-  { icon: Car, label: "Louez R8 V8", message: "Je veux louer l'Audi R8 V8" },
-  { icon: Calculator, label: "Calculez le prix", message: "Combien pour 2 jours avec l'Audi ?" },
-  { icon: Car, label: "Info McLaren", message: "Donnez-moi les infos sur la McLaren" },
-  { icon: Car, label: "Info R8", message: "Donnez-moi les infos sur l'Audi R8" },
-  { icon: MessageCircle, label: "Contact WhatsApp", message: "Je veux vous contacter par WhatsApp" },
-  { icon: Instagram, label: "Contact Instagram", message: "Je veux vous suivre sur Instagram" },
-  { icon: Car, label: "Où êtes-vous ?", message: "Où êtes-vous situés ?" },
-  { icon: Calculator, label: "Transport", message: "Combien coûte le transport à Lausanne ?" },
-  { icon: MessageCircle, label: "Loue ton véhicule", message: "Comment rentabiliser mon véhicule ?" },
-];
+// Point #2 : Suggestions rapides supprimées — champ texte libre uniquement
 
 const whatsappCta = () =>
   `\n\n📱 **Pour louer :** contactez-nous sur **WhatsApp** au **${CONTACT.phone}** — nous répondons rapidement pour finaliser votre réservation !`;
 
-// Suggestions 1-clic quand l'IA ne peut pas répondre
-const FALLBACK_SUGGESTIONS = [
-  "Quels sont les tarifs ?",
-  "Calculez le prix pour 2 jours Audi",
-  "Infos sur la McLaren 570S",
-  "Infos sur l'Audi R8",
-  "Comment réserver ?",
-  "Quelles sont les disponibilités ?",
-  "Contact WhatsApp",
-];
-
 // Réponses IA basées sur les données du site (chatKnowledge)
+// Point #3 : L'IA guide vers les pages du site au lieu d'inventer des infos
 const sendMessageToAI = async (
   messages: { role: string; content: string }[],
   vehicleName?: string | null
-): Promise<{ content: string; suggestions?: string[] }> => {
+): Promise<{ content: string }> => {
   await new Promise((resolve) => setTimeout(resolve, 600));
   const lastMessage = messages[messages.length - 1].content.toLowerCase().trim();
   const lm = lastMessage;
@@ -106,32 +77,17 @@ const sendMessageToAI = async (
     };
   }
 
-  // PRIORITÉ : Calcul prix avec forfaits réels — avant tout bloc "Louer"
-  const parsed = parsePriceQuery(messages[messages.length - 1].content);
-  const hasVehicle = parsed.vehicleQuery || lm.includes("audi") || lm.includes("r8") || lm.includes("mclaren") || lm.includes("570");
-  const hasPriceIntent = parsed.days !== undefined || parsed.durationKey || parsed.requestedKm !== undefined || parsed.extraKm !== undefined || /combien|prix|tarif|coût|cout|estimation/.test(lm);
+  // Point #3 : L'IA ne calcule plus de prix — elle guide vers les bonnes pages
+  const hasPriceIntent = /combien|prix|tarif|coût|cout|estimation|cher/.test(lm);
+  const hasVehicle = lm.includes("audi") || lm.includes("r8") || lm.includes("mclaren") || lm.includes("570");
+  
   if (hasVehicle && hasPriceIntent) {
-    const vFromContext = vehicleName ? findVehicleByQuery(vehicleName) : null;
-    const vFromMsg = parsed.vehicleQuery ? findVehicleByQuery(parsed.vehicleQuery) : findVehicleByQuery(lm);
-    const vehicleSlug = vFromContext?.slug ?? vFromMsg?.slug;
-    const durationInput = parsed.durationKey ?? parsed.days ?? 1;
-    const requestedKm = parsed.requestedKm ?? 0;
-    const extraKm = parsed.extraKm ?? 0;
-    const transportKm = parsed.transportKm ?? 0;
-    const daysLabel = parsed.days ? `${parsed.days} jour${parsed.days > 1 ? "s" : ""}` : (parsed.durationKey || "1 jour");
-    if (vehicleSlug) {
-      const result = extraKm > 0
-        ? calculatePriceFromSite(vehicleSlug, durationInput, extraKm, transportKm, true)
-        : calculatePriceFromSite(vehicleSlug, durationInput, requestedKm, transportKm, false);
-      if (result) {
-        let text = `💰 **Prix pour ${result.vehicleName}** — ${result.forfaitLabel} (${daysLabel})\n\n`;
-        text += `• **Location** : **${result.locationPrice} CHF** (${result.kmInclus} km inclus)\n`;
-        if (result.extraKm > 0) text += `• **Km supplémentaires** (${result.extraKm} km) : ~${result.extraKmPrice} CHF\n`;
-        if (result.transportKm > 0) text += `• **Transport** (${result.transportKm} km) : ${result.transportPrice} CHF\n`;
-        text += `\n**Total : ${result.total} CHF**\n\n🔒 Caution : ${result.caution}`;
-        return { content: text + whatsappCta() };
-      }
-    }
+    // Guider vers la fiche véhicule au lieu de calculer un prix
+    const vehicleName = (lm.includes("mclaren") || lm.includes("570")) ? "McLaren 570S" : "Audi R8 V8";
+    const vehicleSlug = (lm.includes("mclaren") || lm.includes("570")) ? "mclaren-570s" : "audi-r8-v8";
+    return {
+      content: `💰 **Prix de la ${vehicleName}**\n\nJe ne peux pas vous donner un prix exact ici, mais vous trouverez tous les tarifs détaillés (forfaits, km inclus, caution) sur la fiche du véhicule :\n\n👉 **Menu "Véhicules" → ${vehicleName}**\n\nOu utilisez notre calculateur de prix interactif :\n👉 **Menu "Véhicules" → Calculer le prix**\n\nPour toute question, contactez-nous sur WhatsApp !` + whatsappCta(),
+    };
   }
 
   // Contexte véhicule : utilisateur veut louer → on envoie le formulaire réservation (CI, permis, justificatif)
@@ -149,22 +105,20 @@ const sendMessageToAI = async (
     return { content: `📋 **Formulaire pour réserver le véhicule**\n\nVoici ce dont nous avons besoin :\n\n${list}\n\nUne fois tout rempli, **une personne vous contactera par WhatsApp ou par téléphone** pour confirmer votre réservation.\n\n📱 Envoyez-nous vos documents sur **WhatsApp** au **${CONTACT.phone}** ou cliquez sur le bouton vert en bas pour nous joindre.` };
   }
 
-  // Louer McLaren
+  // Louer McLaren — guide vers la page sans mentionner de prix
   if (
     (lm.includes("louer") || lm.includes("louez")) &&
     (lm.includes("mclaren") || lm.includes("570"))
   ) {
-    const v = VEHICLES[1];
-    return { content: `📱 **Pour louer la McLaren 570S**, contactez-nous sur **WhatsApp** au **${CONTACT.phone}**.\n\nNous vérifions les dispos, les tarifs (dès **${v.pricePerDay} CHF**/jour) et finalisons votre réservation. À très vite ! 🏎️` + whatsappCta() };
+    return { content: `📱 **Pour louer la McLaren 570S**, contactez-nous sur **WhatsApp** au **${CONTACT.phone}**.\n\nPour voir les tarifs et disponibilités, rendez-vous dans :\n👉 **Menu "Véhicules" → McLaren 570S**\n\nNous vous accompagnons pour finaliser votre réservation ! 🏎️` + whatsappCta() };
   }
 
-  // Louer R8
+  // Louer R8 — guide vers la page sans mentionner de prix
   if (
     (lm.includes("louer") || lm.includes("louez")) &&
     (lm.includes("r8") || lm.includes("audi"))
   ) {
-    const v = VEHICLES[0];
-    return { content: `📱 **Pour louer l'Audi R8 V8**, contactez-nous sur **WhatsApp** au **${CONTACT.phone}**.\n\nNous vérifions les dispos, les tarifs (dès **${v.pricePerDay} CHF**/jour) et finalisons votre réservation. À très vite ! 🏎️` + whatsappCta() };
+    return { content: `📱 **Pour louer l'Audi R8 V8**, contactez-nous sur **WhatsApp** au **${CONTACT.phone}**.\n\nPour voir les tarifs et disponibilités, rendez-vous dans :\n👉 **Menu "Véhicules" → Audi R8 V8**\n\nNous vous accompagnons pour finaliser votre réservation ! 🏎️` + whatsappCta() };
   }
 
   // Louer / réserver (général)
@@ -182,21 +136,19 @@ const sendMessageToAI = async (
     return { content: `📸 **Nous suivre sur Instagram**\n\nRetrouvez nos supercars et l'actualité Rebellion Luxury : ${CONTACT.instagramUrl}\n\n📱 **Pour réserver :** WhatsApp au **${CONTACT.phone}** — le plus simple pour finaliser une location !` + whatsappCta() };
   }
 
-  // Info Audi R8
+  // Info Audi R8 — guide vers la fiche véhicule sans afficher les prix
   if (lm.includes("audi") || lm.includes("r8")) {
     const v = VEHICLES[0];
-    const pricing = v.pricing.map((p) => `- ${p.label}: **${p.price}** (${p.km})`).join("\n");
-    return { content: `🏎️ **${v.name}** — ${v.description}\n\n• **Puissance:** ${v.specs.power}\n• **Transmission:** ${v.specs.transmission}\n• **Année:** ${v.specs.year}\n\n💰 **Tarifs:**\n${pricing}\n\n🔒 Caution: ${v.specs.caution}` + whatsappCta() };
+    return { content: `🏎️ **${v.name}** — ${v.description}\n\n• **Puissance:** ${v.specs.power}\n• **Transmission:** ${v.specs.transmission}\n• **Année:** ${v.specs.year}\n\n💰 **Tarifs et caution :** consultez la fiche complète ici :\n👉 **Menu "Véhicules" → Audi R8 V8**\n\nVous y trouverez tous les forfaits, km inclus et conditions.` + whatsappCta() };
   }
 
-  // Info McLaren
+  // Info McLaren — guide vers la fiche véhicule sans afficher les prix
   if (lm.includes("mclaren") || lm.includes("570")) {
     const v = VEHICLES[1];
-    const pricing = v.pricing.map((p) => `- ${p.label}: **${p.price}** (${p.km})`).join("\n");
-    return { content: `🦋 **${v.name}** — ${v.description}\n\n• **Puissance:** ${v.specs.power}\n• **Portes papillon** • **Année:** ${v.specs.year}\n\n💰 **Tarifs:**\n${pricing}\n\n🔒 Caution: ${v.specs.caution}` + whatsappCta() };
+    return { content: `🦋 **${v.name}** — ${v.description}\n\n• **Puissance:** ${v.specs.power}\n• **Portes papillon** • **Année:** ${v.specs.year}\n\n💰 **Tarifs et caution :** consultez la fiche complète ici :\n👉 **Menu "Véhicules" → McLaren 570S**\n\nVous y trouverez tous les forfaits, km inclus et conditions.` + whatsappCta() };
   }
 
-  // Calcul de prix / estimation (véhicule + jours + km + transport)
+  // Calcul de prix / estimation — guide vers l'outil dédié (point #3)
   const asksPriceCalc =
     lm.includes("calcul") ||
     lm.includes("combien") ||
@@ -205,45 +157,14 @@ const sendMessageToAI = async (
     lm.includes("coût") ||
     lm.includes("cout ");
   if (asksPriceCalc) {
-    const parsed = parsePriceQuery(messages[messages.length - 1].content);
-    const vFromContext = vehicleName ? findVehicleByQuery(vehicleName) : null;
-    const vFromMsg = parsed.vehicleQuery ? findVehicleByQuery(parsed.vehicleQuery) : null;
-    const vehicleSlug = vFromContext?.slug ?? vFromMsg?.slug;
-    const days = parsed.days ?? 1;
-    const extraKm = parsed.extraKm ?? 0;
-    const transportKm = parsed.transportKm ?? 0;
-
-    if (vehicleSlug && days >= 1) {
-      const breakdown = calculateTotalPrice(vehicleSlug, days, extraKm, transportKm);
-      if (breakdown) {
-        let text = `💰 **Estimation pour ${breakdown.vehicleName}** (${days} jour${days > 1 ? "s" : ""})\n\n`;
-        text += `• **Location :** ${breakdown.locationPrice} CHF\n`;
-        if (breakdown.extraKmPrice > 0) text += `• **Km supplémentaires** (${breakdown.extraKm} km) : ~${breakdown.extraKmPrice} CHF\n`;
-        if (breakdown.transportPrice > 0) text += `• **Transport** (${breakdown.transportKm} km) : ${breakdown.transportPrice} CHF\n`;
-        text += `\n**Total estimé :** ${breakdown.total} CHF\n\n🔒 Caution : ${breakdown.caution}`;
-        return { content: text + whatsappCta() };
-      }
-    }
-
-    if (transportKm > 0 && !vehicleSlug) {
-      const transportPrice = calculateTransportPrice(transportKm);
-      return {
-        content: `🚚 **Transport uniquement** (${transportKm} km)\n\n• **Tarif :** 2 CHF/km\n• **Total transport :** ${transportPrice} CHF\n\nPour une estimation complète (location + transport), précisez le véhicule et la durée (ex. : "Prix pour 3 jours avec la McLaren et 80 km de transport").`,
-      };
-    }
-
     return {
-      content: `💰 **Calcul du prix**\n\nPour une estimation, précisez : **véhicule** (Audi R8 ou McLaren 570S), **nombre de jours** et éventuellement **km supplémentaires** ou **km de transport**.\n\nEx. : "Combien pour 2 jours avec l'Audi et 50 km de transport ?"\n\n👉 Utilisez l'onglet **Calculez le prix** pour une estimation détaillée.`,
-      suggestions: ["Calculez le prix pour 2 jours Audi", "Calculez le prix pour 3 jours McLaren", "Prix transport 100 km"],
+      content: `💰 **Calculer le prix**\n\nJe ne peux pas vous donner un prix exact ici. Pour obtenir une estimation précise avec tous les forfaits et options, utilisez notre outil interactif :\n\n👉 **Menu "Véhicules" → Calculer le prix**\n\nVous pourrez y choisir le véhicule, la durée, les km supplémentaires et le transport.\n\nOu consultez directement la fiche du véhicule concerné pour voir ses tarifs.` + whatsappCta(),
     };
   }
 
-  // Tarifs (liste simple)
+  // Tarifs — guide vers les pages véhicules (point #3)
   if (lm.includes("prix") || lm.includes("tarif")) {
-    const lines = VEHICLES.map(
-      (v) => `**${v.name}:** Journée ${v.pricePerDay} CHF • Week-end et plus sur demande`
-    ).join("\n\n");
-    return { content: `💰 **Nos tarifs (données du site):**\n\n${lines}\n\nTous les forfaits incluent un kilométrage défini. Détails complets sur l'onglet **Véhicules**.` + whatsappCta() };
+    return { content: `💰 **Nos tarifs**\n\nJe ne peux pas afficher les prix ici. Vous trouverez tous les tarifs détaillés sur les fiches véhicules :\n\n👉 **Menu "Véhicules" → Audi R8 V8** ou **McLaren 570S**\n\nChaque fiche présente les forfaits (journée, week-end, semaine, mois), km inclus et caution.` + whatsappCta() };
   }
 
   // Disponibilités — redirection vers Boboloc (temps réel)
@@ -275,7 +196,7 @@ const sendMessageToAI = async (
     const lines = VEHICLES.map(
       (v, i) => `${i + 1}️⃣ **${v.name}** — Dès ${v.pricePerDay} CHF/jour • ${v.description.slice(0, 50)}…`
     ).join("\n\n");
-    return { content: `🚗 **Notre flotte:**\n\n${lines}\n\n+ **Catalogue des particuliers** (véhicules proposés par des propriétaires).\n\nBasés en **${CONTACT.location}**.` + whatsappCta() };
+    return { content: `🚗 **Notre flotte:**\n\n${lines}\n\nBasés en **${CONTACT.location}**.` + whatsappCta() };
   }
 
   // Conditions
@@ -367,7 +288,7 @@ const sendMessageToAI = async (
 
   // Plan du site / pages / navigation
   if (lm.includes("plan du site") || lm.includes("pages") || lm.includes("navigation") || lm.includes("menu") && lm.includes("quoi")) {
-    return { content: `🗺️ **Plan du site**\n\n• **Accueil** — Présentation\n• **Véhicules** — Catalogue + Catalogue des particuliers\n• **Calculez le prix** — Estimation tarifs\n• **Loue ton véhicule** — Rentabiliser votre voiture\n• **Voir mes demandes** — Suivi des demandes\n• **À propos** — Notre histoire, conditions\n• **Transport** — Livraison à domicile\n• **Réseaux** — Instagram, Facebook, TikTok\n• **Espace pro** — Gestion véhicules particuliers\n• **Contact** — Email, téléphone, WhatsApp\n\nQue souhaitez-vous savoir ?` };
+    return { content: `🗺️ **Plan du site**\n\n• **Accueil** — Présentation\n• **Véhicules** — Catalogue complet\n• **Calculez le prix** — Estimation tarifs\n• **Loue ton véhicule** — Rentabiliser votre voiture\n• **Voir mes demandes** — Suivi des demandes\n• **À propos** — Notre histoire, conditions\n• **Transport** — Livraison à domicile\n• **Réseaux** — Instagram, Facebook, TikTok\n• **Espace pro** — Gestion véhicules\n• **Contact** — Email, téléphone, WhatsApp\n\nQue souhaitez-vous savoir ?` };
   }
 
   // Calculez le prix (lien)
@@ -421,18 +342,9 @@ const sendMessageToAI = async (
     return { content: `📱 **Nos réseaux**\n\n• **Instagram :** ${CONTACT.instagramUrl}\n• **Facebook :** ${CONTACT.facebookUrl}\n• **TikTok :** ${CONTACT.tiktokUrl}\n\nPour **réserver** : **WhatsApp** au **${CONTACT.phone}** — le plus rapide !` + whatsappCta() };
   }
 
-  // Fallback intelligent — suggestions selon mots-clés détectés
-  const suggestions: string[] = [];
-  if (/audi|r8|mclaren|570|voiture|véhicule|auto/.test(lm)) suggestions.push("Infos sur l'Audi R8", "Infos sur la McLaren 570S", "Quels sont les tarifs ?");
-  if (/prix|tarif|combien|coût|cout/.test(lm)) suggestions.push("Calculez le prix pour 2 jours Audi", "Calculez le prix pour 3 jours McLaren");
-  if (/louer|réserver|reserver|location/.test(lm)) suggestions.push("Comment réserver ?", "Je veux louer la McLaren 570S", "Contact WhatsApp");
-  if (/dispo|disponib|date|libre/.test(lm)) suggestions.push("Quelles sont les disponibilités ?");
-  if (/contact|joindre|écrire|ecrire|appeler/.test(lm)) suggestions.push("Contact WhatsApp", "Je veux vous contacter par WhatsApp");
-  if (suggestions.length === 0) suggestions.push(...FALLBACK_SUGGESTIONS);
-
+  // Fallback — point #3 : guide vers les bonnes pages du site
   return {
-    content: `Je n'ai pas trouvé de réponse précise à votre question. **Choisissez une suggestion ci-dessous** ou reformulez — je connais les véhicules, tarifs, réservations, transport, conditions, Loue ton véhicule et tout le reste du site !`,
-    suggestions: [...new Set(suggestions)].slice(0, 6),
+    content: `Je n'ai pas trouvé de réponse précise à votre question.\n\nVoici les principales rubriques du site :\n\n• **Véhicules** : fiches détaillées, tarifs, disponibilités\n• **Calculer le prix** : estimation interactive\n• **Loue ton véhicule** : rentabiliser votre supercar\n• **Transport** : infos livraison\n• **Contact** : nous joindre\n\nReformulez votre question ou consultez directement ces pages via le menu !`,
   };
 };
 
@@ -520,14 +432,12 @@ const AIAssistant = ({ isOpen, onToggle, initialMessage }: AIAssistantProps) => 
 
       const result = await sendMessageToAI(aiMessages, vehicleContext?.vehicleName ?? null);
       const content = typeof result === "string" ? result : result.content;
-      const suggestions = typeof result === "object" && "suggestions" in result ? result.suggestions : undefined;
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
         content,
         timestamp: new Date(),
-        suggestions,
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -547,10 +457,6 @@ const AIAssistant = ({ isOpen, onToggle, initialMessage }: AIAssistantProps) => 
       e.preventDefault();
       handleSend();
     }
-  };
-
-  const handleQuickSuggestion = (message: string) => {
-    handleSendMessage(message);
   };
 
   // Simple markdown-like rendering for bold text
@@ -579,12 +485,14 @@ const AIAssistant = ({ isOpen, onToggle, initialMessage }: AIAssistantProps) => 
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.95 }}
               onClick={onToggle}
-              className="relative w-14 h-14 min-w-[56px] min-h-[56px] sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-white to-white/90 text-black flex items-center justify-center touch-manipulation border border-white/50 transition-shadow hover:shadow-xl hover:shadow-white/20"
-              style={{
-                boxShadow: "0 4px 24px rgba(255,255,255,0.2), 0 0 0 1px rgba(255,255,255,0.15) inset"
-              }}
+              className="relative w-14 h-14 min-w-[56px] min-h-[56px] sm:w-16 sm:h-16 rounded-full overflow-hidden bg-transparent flex items-center justify-center touch-manipulation transition-shadow hover:shadow-xl hover:shadow-white/20"
             >
-              <MessageCircle className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2} />
+              {/* Logo Rebellion Luxury au lieu de l'icône bulle */}
+              <img
+                src="/rebellion-luxury-logo.png"
+                alt="Rebellion Luxury"
+                className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
+              />
             </motion.button>
             <motion.span
               className="label-rebellion-ia text-sm text-primary whitespace-nowrap"
@@ -614,29 +522,34 @@ const AIAssistant = ({ isOpen, onToggle, initialMessage }: AIAssistantProps) => 
               border: isMobile ? "none" : "1px solid hsl(0 0% 100% / 0.2)"
             }}
           >
-            {/* Header — safe area pour encoche */}
+            {/* Header — branding Rebellion Luxury avec logo (point #2) */}
             <div className="flex items-center justify-between p-4 sm:p-5 pt-[max(1rem,env(safe-area-inset-top))] border-b border-border bg-gradient-to-r from-primary/20 via-primary/10 to-transparent shrink-0">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                {/* Logo Rebellion Luxury au lieu d'une icône générique */}
                 <motion.div 
-                  className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center"
+                  className="w-11 h-11 rounded-full overflow-hidden border border-white/25 ring-1 ring-white/10 shrink-0"
                   animate={{ 
                     boxShadow: [
+                      "0 0 12px hsl(0 0% 100% / 0.2)",
                       "0 0 20px hsl(0 0% 100% / 0.3)",
-                      "0 0 40px hsl(0 0% 100% / 0.4)",
-                      "0 0 20px hsl(0 0% 100% / 0.3)"
+                      "0 0 12px hsl(0 0% 100% / 0.2)"
                     ]
                   }}
-                  transition={{ repeat: Infinity, duration: 2 }}
+                  transition={{ repeat: Infinity, duration: 2.5 }}
                 >
-                  <Sparkles className="w-6 h-6 text-primary-foreground" />
+                  <img
+                    src="/rebellion-luxury-logo.png"
+                    alt="Rebellion Luxury"
+                    className="w-full h-full object-contain"
+                  />
                 </motion.div>
                 <div>
-                  <h3 className="font-display text-xl font-bold">
-                    <span className="text-gradient-orange">Rebellion</span> IA
+                  <h3 className="font-display text-lg font-bold uppercase tracking-wide">
+                    <span className="text-gradient-orange">Rebellion</span> Luxury
                   </h3>
                   <span className="text-xs text-muted-foreground flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                    Connaît tout le site sur le bout des doigts
+                    Assistant IA
                   </span>
                 </div>
               </div>
@@ -660,18 +573,19 @@ const AIAssistant = ({ isOpen, onToggle, initialMessage }: AIAssistantProps) => 
                   }`}
                 >
                   <div
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 overflow-hidden ${
                       message.role === "user"
                         ? "bg-muted"
-                        : "bg-primary"
+                        : "border border-border"
                     }`}
                   >
                     {message.role === "user" ? (
                       <User className="w-4 h-4 text-foreground" />
                     ) : (
-                      <Bot className="w-4 h-4 text-primary-foreground" />
+                      <img src="/rebellion-luxury-logo.png" alt="Rebellion Luxury" className="w-full h-full object-contain" />
                     )}
                   </div>
+                  {/* Suggestions supprimées des bulles (point #2) */}
                   <div
                     className={`max-w-[80%] rounded-2xl px-4 py-3 ${
                       message.role === "user"
@@ -682,20 +596,6 @@ const AIAssistant = ({ isOpen, onToggle, initialMessage }: AIAssistantProps) => 
                     <p className="text-sm leading-relaxed whitespace-pre-line">
                       {renderContent(message.content)}
                     </p>
-                    {message.role === "assistant" && message.suggestions && message.suggestions.length > 0 && (
-                      <div className="mt-2 pt-2 border-t border-border/40 flex flex-wrap gap-1">
-                        {message.suggestions.map((s, i) => (
-                          <button
-                            key={i}
-                            type="button"
-                            onClick={() => handleQuickSuggestion(s)}
-                            className="px-2 py-1 rounded-md bg-muted/70 hover:bg-primary/15 border border-transparent hover:border-primary/30 text-[11px] font-medium transition-colors"
-                          >
-                            {s}
-                          </button>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 </motion.div>
               ))}
@@ -706,8 +606,8 @@ const AIAssistant = ({ isOpen, onToggle, initialMessage }: AIAssistantProps) => 
                   animate={{ opacity: 1, y: 0 }}
                   className="flex gap-3"
                 >
-                  <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
-                    <Bot className="w-4 h-4 text-primary-foreground" />
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 overflow-hidden border border-border">
+                    <img src="/rebellion-luxury-logo.png" alt="Rebellion Luxury" className="w-full h-full object-contain" />
                   </div>
                   <div className="bg-card border border-border rounded-2xl rounded-bl-md px-4 py-3">
                     <div className="flex gap-1.5">
@@ -735,25 +635,8 @@ const AIAssistant = ({ isOpen, onToggle, initialMessage }: AIAssistantProps) => 
             </div>
 
             {/* Input — text-base (16px) évite le zoom iOS au focus */}
+            {/* Suggestions rapides supprimées (point #2) — champ texte libre uniquement */}
             <div className="p-4 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-border bg-card/50 shrink-0">
-              {/* Suggestions : compactes, dans la zone input — masquées dès qu'on envoie un message */}
-              {messages.length === 1 && !isLoading && (
-                <div className="mb-3 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                  <div className="flex gap-1.5 flex-nowrap">
-                    {quickSuggestions.map((suggestion, index) => (
-                      <button
-                        key={index}
-                        type="button"
-                        onClick={() => handleQuickSuggestion(suggestion.message)}
-                        className="shrink-0 flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-muted/60 border border-border/80 hover:border-primary/40 hover:bg-primary/10 transition-all text-[11px] font-medium text-foreground/90"
-                      >
-                        <suggestion.icon className="w-3 h-3 text-primary shrink-0" />
-                        <span className="whitespace-nowrap">{suggestion.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
               <div className="flex gap-3">
                 <input
                   ref={inputRef}

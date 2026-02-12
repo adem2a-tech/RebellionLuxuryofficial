@@ -35,7 +35,7 @@ function VehicleCardCarousel({ images, badgeLabel = "Rebellion" }: { images: str
 
   return (
     <div
-      className="relative aspect-[3/2] bg-zinc-900 overflow-hidden shrink-0 w-full select-none z-20 border-2 border-white rounded-t-xl"
+      className="relative aspect-[3/2] bg-zinc-900 overflow-hidden shrink-0 w-full select-none z-20 border-2 border-black rounded-t-xl"
       onClick={(e) => e.stopPropagation()}
       role="region"
       aria-label="Carrousel photos"

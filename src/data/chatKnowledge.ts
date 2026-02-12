@@ -84,7 +84,6 @@ export const SITE_INFO = {
   minPermitYears: 2,
   pages: {
     vehicules: "/vehicules",
-    catalogueParticuliers: "/vehicules?hors-rebellion=1",
     calculerPrix: "/calculer-prix",
     transport: "/transport",
     loueTonVehicule: "/loue-ton-vehicule",

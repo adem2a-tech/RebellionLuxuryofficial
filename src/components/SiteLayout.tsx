@@ -19,6 +19,11 @@ function SiteLayoutInner({ justFinishedTransition }: SiteLayoutInnerProps) {
   const location = useLocation();
   const { isOpen, initialMessage, openChat, toggleChat } = useChat();
 
+  // FIX: Scroll to top on every route change (bug #4)
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [location.pathname]);
+
   useEffect(() => {
     recordVisit(location.pathname || "/");
   }, [location.pathname]);

@@ -4,7 +4,8 @@ import { cn } from "@/lib/utils";
 
 interface VideoFlotteCardProps {
   title: string;
-  videoSrc: string;
+  videoSrc?: string;
+  imageSrc?: string;
   ariaLabel: string;
   vehicleType?: string;
   description?: string;
@@ -14,6 +15,7 @@ interface VideoFlotteCardProps {
 export function VideoFlotteCard({
   title,
   videoSrc,
+  imageSrc,
   ariaLabel,
   vehicleType,
   description,
@@ -179,16 +181,24 @@ export function VideoFlotteCard({
                   ease: "easeInOut",
                 }}
               >
-                <div className="aspect-[16/9] w-full overflow-hidden min-h-[240px] sm:min-h-[280px]">
-                  <video
-                    src={videoSrc}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="w-full h-full object-cover scale-[1.08]"
-                    aria-label={ariaLabel}
-                  />
+                <div className={`w-full overflow-hidden ${imageSrc ? "aspect-[3/4] min-h-[320px] sm:min-h-[380px]" : "aspect-[16/9] min-h-[240px] sm:min-h-[280px]"}`}>
+                  {imageSrc ? (
+                    <img
+                      src={imageSrc}
+                      alt={ariaLabel}
+                      className="w-full h-full object-cover object-center"
+                    />
+                  ) : videoSrc ? (
+                    <video
+                      src={videoSrc}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="w-full h-full object-cover scale-[1.08]"
+                      aria-label={ariaLabel}
+                    />
+                  ) : null}
                 </div>
               </motion.div>
             </div>

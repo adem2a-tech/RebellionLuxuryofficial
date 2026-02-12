@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { Button } from "./ui/button";
+import UserAccountDropdown from "./UserAccountDropdown";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +16,6 @@ interface HeaderProps {
 
 const vehiculesSubItems = [
   { label: "Catalogue", href: "/vehicules" },
-  { label: "Catalogue des particuliers", href: "/vehicules?hors-rebellion=1" },
   { label: "Calculez le prix", href: "/calculer-prix" },
 ];
 
@@ -26,6 +26,7 @@ const aProposSubItems = [
 ];
 
 const loueTonVehiculeSubItems = [
+  { label: "Louer", href: "/loue-ton-vehicule" },
   { label: "Voir mes demandes", href: "/verifier-ma-demande" },
 ];
 
@@ -92,14 +93,7 @@ const Header = ({ onOpenChat }: HeaderProps) => {
                       align="start"
                       className="flex flex-row gap-1 p-2 min-w-0 w-auto border-border/80 bg-black/95 backdrop-blur-xl rounded-xl shadow-xl shadow-black/30"
                     >
-                      <Link
-                        to={item.href}
-                        className={`px-4 py-2.5 text-xs font-medium uppercase tracking-wider rounded-lg whitespace-nowrap transition-colors ${
-                          location.pathname === item.href ? "text-white bg-white/10" : "text-muted-foreground hover:text-foreground hover:bg-white/5"
-                        }`}
-                      >
-                        {item.label}
-                      </Link>
+                      {/* Supprimé le lien dupliqué — les subItems suffisent */}
                       {item.subItems.map((sub) => (
                         <Link
                           key={sub.label}
@@ -129,8 +123,9 @@ const Header = ({ onOpenChat }: HeaderProps) => {
             })}
           </nav>
 
-          {/* Divider + CTA */}
-          <div className="hidden lg:flex items-center gap-6 shrink-0">
+          {/* Compte utilisateur + CTA */}
+          <div className="hidden lg:flex items-center gap-4 shrink-0">
+            <UserAccountDropdown />
             <div className="h-6 w-px bg-white/15" aria-hidden />
             <Button
               variant="default"
@@ -165,6 +160,9 @@ const Header = ({ onOpenChat }: HeaderProps) => {
               transition={{ duration: 0.3 }}
               className="lg:hidden overflow-hidden border-t border-border"
             >
+              <div className="px-4 py-3 border-b border-white/10">
+                <UserAccountDropdown className="w-full justify-start" />
+              </div>
               <nav className="flex flex-col gap-0 py-4">
                 {navItems.flatMap((item) => {
                   const majorTabClass = "block px-4 py-3 min-h-[44px] flex items-center text-sm font-semibold uppercase tracking-wider text-[#ffffff] hover:text-[#ffffff] hover:bg-muted/50 active:bg-muted touch-manipulation";

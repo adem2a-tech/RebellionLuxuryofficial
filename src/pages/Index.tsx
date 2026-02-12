@@ -1,35 +1,16 @@
-import { useChat } from "@/contexts/ChatContext";
 import { motion } from "framer-motion";
 import Hero from "@/components/Hero";
-import { Button } from "@/components/ui/button";
 import { VideoFlotteCard } from "@/components/VideoFlotteCard";
-import { Sparkles, Quote, Mail, Phone, MapPin, Instagram, ExternalLink } from "lucide-react";
+import { Quote, Mail, Phone, MapPin, Instagram, ExternalLink } from "lucide-react";
 import { IoLogoWhatsapp } from "react-icons/io5";
 import { CONTACT } from "@/data/chatKnowledge";
 import { LocationMap } from "@/components/ui/expand-map";
 import { ReviewsCarousel } from "@/components/ReviewsCarousel";
 
 const Index = () => {
-  const { openChat } = useChat();
-
   return (
     <>
       <Hero />
-      {/* Parler à Rebellion IA — sur le côté */}
-      <section className="py-4 border-b border-border/50 led-section">
-        <div className="container mx-auto px-4 lg:px-8 flex justify-start">
-          <motion.div
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4, delay: 0.2 }}
-          >
-            <Button variant="hero" size="lg" onClick={() => openChat()}>
-              <Sparkles className="w-5 h-5" />
-              Parler à Rebellion IA
-            </Button>
-          </motion.div>
-        </div>
-      </section>
       {/* Teaser véhicules : deux vidéos côte à côte + CTA vers /vehicules */}
       <section className="py-16 lg:py-24 relative overflow-hidden">
         <div className="container mx-auto px-4 lg:px-8 text-center">
@@ -60,15 +41,15 @@ const Index = () => {
             transition={{ duration: 0.5, ease: [0.34, 1.56, 0.64, 1] }}
           >
             <VideoFlotteCard
-              title="McLaren P1"
-              videoSrc="/mclaren-p1-video.mp4"
-              ariaLabel="McLaren P1"
+              title="McLaren 570S"
+              imageSrc="/mclaren-570s-showroom.png"
+              ariaLabel="McLaren 570S"
               vehicleType="Supercar"
               description="Portes papillons, moteur central et lignes agressives. La quintessence du luxe sportif britannique."
             />
             <VideoFlotteCard
               title="Audi R8"
-              videoSrc="/audi-r8-video.mp4"
+              imageSrc="/audi-r8-showroom.png"
               ariaLabel="Audi R8"
               vehicleType="Supercar"
               description="V8 atmosphérique, tenue de route exemplaire. L'élégance allemande au service de la performance."

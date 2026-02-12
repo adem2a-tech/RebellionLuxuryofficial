@@ -9,6 +9,7 @@ import { ReservationProvider } from "@/contexts/ReservationContext";
 import IdentificationScreen from "@/components/IdentificationScreen";
 import TransitionScreen from "@/components/TransitionScreen";
 import SiteLayout from "@/components/SiteLayout";
+import CookieConsent from "@/components/CookieConsent";
 import Index from "./pages/Index";
 import APropos from "./pages/APropos";
 import Reseaux from "./pages/Reseaux";
@@ -143,6 +144,7 @@ const App = () => (
             <VehicleRequestsProvider>
               <ReservationProvider>
                 <AppContent />
+                <CookieConsent />
               </ReservationProvider>
             </VehicleRequestsProvider>
           </ProAuthProvider>
