@@ -9,8 +9,12 @@ lerna-debug.log*
 
 node_modules
 dist
+server/data
 dist-ssr
 *.local
+
+# Vidéos lourdes (limite GitHub 100 Mo)
+public/0221.mp4
 
 # Editor directories and files
 .vscode/*

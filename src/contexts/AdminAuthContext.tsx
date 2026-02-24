@@ -1,62 +1,105 @@
-import { createContext, useContext, useCallback, useState, useEffect, type ReactNode } from "react";
-
-const STORAGE_KEY = "rebellion_admin_session";
-
-function getStorage(): Storage | null {
-  if (typeof window === "undefined") return null;
-  try {
-    void localStorage.length;
-    return localStorage;
-  } catch {
-    return null;
-  }
-}
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import * as authApi from "@/lib/auth-api";
 
 type AdminAuthContextValue = {
   isAdmin: boolean;
-  login: (email: string, password: string) => boolean;
-  logout: () => void;
+  /** true tant que la tentative de reconnexion (refresh) n'a pas été faite */
+  isCheckingSession: boolean;
+  login: (email: string, password: string, rememberMe: boolean) => Promise<boolean>;
+  logout: () => Promise<void>;
+  logoutAllDevices: () => Promise<void>;
 };
 
 const AdminAuthContext = createContext<AdminAuthContextValue | null>(null);
 
-const ADMIN_EMAIL = "admin@rebellionluxury.ch";
-const ADMIN_PASSWORD = "huracan2025";
+const ADMIN_FALLBACK_EMAIL = "admin@rebellionluxury.ch";
+const ADMIN_FALLBACK_PASSWORD = "huracan2025";
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
+  const tokenHolderRef = useRef({ get: () => accessToken, set: setAccessToken });
 
   useEffect(() => {
-    try {
-      const stored = getStorage()?.getItem(STORAGE_KEY);
-      setIsAdmin(stored === "true");
-    } catch {
-      setIsAdmin(false);
-    }
+    tokenHolderRef.current.get = () => accessToken;
+    tokenHolderRef.current.set = setAccessToken;
+  }, [accessToken]);
+
+  useEffect(() => {
+    authApi.setAuthTokenHolder({
+      get: () => tokenHolderRef.current.get(),
+      set: (t) => tokenHolderRef.current.set(t),
+    });
   }, []);
 
-  const login = useCallback((email: string, password: string): boolean => {
-    const ok = email.trim().toLowerCase() === ADMIN_EMAIL && password === ADMIN_PASSWORD;
-    if (ok) {
-      try {
-        getStorage()?.setItem(STORAGE_KEY, "true");
-        setIsAdmin(true);
-      } catch {
-        setIsAdmin(true);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const token = await authApi.refreshSession();
+      if (!cancelled && token) setAccessToken(token);
+      if (!cancelled) setIsCheckingSession(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const login = useCallback(
+    async (email: string, password: string, rememberMe: boolean): Promise<boolean> => {
+      const result = await authApi.login(email, password, rememberMe);
+      if (result.ok) {
+        setAccessToken(result.accessToken);
+        return true;
       }
+      if (result.error === "API indisponible.") {
+        const ok =
+          email.trim().toLowerCase() === ADMIN_FALLBACK_EMAIL && password === ADMIN_FALLBACK_PASSWORD;
+        if (ok) {
+          setAccessToken("local");
+          return true;
+        }
+      }
+      return false;
+    },
+    []
+  );
+
+  const logout = useCallback(async () => {
+    try {
+      await authApi.logout();
+    } catch {
+      // ignore
     }
-    return ok;
+    setAccessToken(null);
   }, []);
 
-  const logout = useCallback(() => {
+  const logoutAllDevices = useCallback(async () => {
     try {
-      getStorage()?.removeItem(STORAGE_KEY);
-    } catch { /* ignore */ }
-    setIsAdmin(false);
+      await authApi.logoutAllDevices();
+    } catch {
+      // ignore
+    }
+    setAccessToken(null);
   }, []);
+
+  const value: AdminAuthContextValue = {
+    isAdmin: !!accessToken,
+    isCheckingSession,
+    login,
+    logout,
+    logoutAllDevices,
+  };
 
   return (
-    <AdminAuthContext.Provider value={{ isAdmin, login, logout }}>
+    <AdminAuthContext.Provider value={value}>
       {children}
     </AdminAuthContext.Provider>
   );

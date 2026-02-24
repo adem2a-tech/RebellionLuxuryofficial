@@ -149,7 +149,7 @@ const VehicleCard = ({
               <img
                 src="/rebellion-luxury-logo.png"
                 alt="Rebellion Luxury"
-                className="h-6 w-6 object-contain"
+                className="h-6 w-6 object-contain shrink-0"
               />
               <span className="text-amber-400 font-semibold uppercase tracking-wider text-xs">
                 Rebellion Luxury

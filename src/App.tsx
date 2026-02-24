@@ -1,4 +1,5 @@
 import { useState, useEffect, Component, lazy, Suspense, type ReactNode } from "react";
+import { AnimatePresence } from "framer-motion";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -82,25 +83,28 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, { hasError: bo
 }
 
 function AppContent() {
-  const { phase, setPhase, isIdentified } = useUser();
+  const { phase, setPhase, isIdentified, loadedFromStorage } = useUser();
   const [justFinishedTransition, setJustFinishedTransition] = useState(false);
 
   if (!isIdentified || phase === "identification") {
-    return <IdentificationScreen />;
-  }
-
-  if (phase === "transition") {
-    return (
-      <TransitionScreen
-        onComplete={() => {
-          setPhase("app");
-          setJustFinishedTransition(true);
-        }}
-      />
-    );
+    return <IdentificationScreen key="identification" />;
   }
 
   return (
+    <>
+      <AnimatePresence mode="wait">
+        {phase === "transition" && (
+          <TransitionScreen
+            key="transition"
+            onComplete={() => {
+              setPhase("app");
+              setJustFinishedTransition(true);
+            }}
+            isReturning={loadedFromStorage}
+          />
+        )}
+      </AnimatePresence>
+      {phase === "app" && (
     <BrowserRouter>
       <Routes>
         <Route
@@ -130,6 +134,8 @@ function AppContent() {
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
+      )}
+    </>
   );
 }
 

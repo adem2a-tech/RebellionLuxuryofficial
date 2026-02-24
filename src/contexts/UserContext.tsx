@@ -9,6 +9,8 @@ import {
 } from "react";
 
 import { addVisitor } from "@/data/visitors";
+import SplashScreen from "@/components/SplashScreen";
+import { COOKIE_BANNER_OPEN_EVENT } from "@/components/CookieConsent";
 
 const STORAGE_KEY = "rebellion_user";
 const POPUP_SEEN_KEY = "rebellion_popup_seen";
@@ -28,6 +30,8 @@ type UserContextValue = {
   setPhase: (phase: AppPhase) => void;
   identify: (data: UserData) => void;
   resetIdentification: () => void;
+  /** true si l'utilisateur a été rechargé depuis le stockage (retour sur le site) */
+  loadedFromStorage: boolean;
 };
 
 const UserContext = createContext<UserContextValue | null>(null);
@@ -54,12 +58,23 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserData | null>(null);
   const [phase, setPhase] = useState<AppPhase>("identification");
   const [hydrated, setHydrated] = useState(false);
+  const [loadedFromStorage, setLoadedFromStorage] = useState(false);
 
   useEffect(() => {
+    // Cookie de visite (pro) — posé dès l'arrivée sur le site
+    try {
+      const existing = document.cookie.includes("rebellion_visit=");
+      if (!existing) {
+        document.cookie = `rebellion_visit=${Date.now()}; path=/; max-age=31536000; SameSite=Lax`;
+      }
+    } catch {
+      // ignore
+    }
     const stored = loadUserFromStorage();
     if (stored) {
       setUser(stored);
-      setPhase("app");
+      setPhase("transition");
+      setLoadedFromStorage(true);
     }
     setHydrated(true);
   }, []);
@@ -77,6 +92,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.removeItem(STORAGE_KEY);
       localStorage.removeItem(POPUP_SEEN_KEY);
+      // Rouvrir le bandeau cookies à la réidentification
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent(COOKIE_BANNER_OPEN_EVENT));
+      }
     } catch {
       // ignore
     }
@@ -90,25 +109,20 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setPhase,
       identify,
       resetIdentification,
+      loadedFromStorage,
     }),
-    [user, phase, identify, resetIdentification],
+    [user, phase, identify, resetIdentification, loadedFromStorage],
   );
 
-  if (!hydrated) {
+  const [splashDone, setSplashDone] = useState(false);
+
+  if (!hydrated || !splashDone) {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#000",
-          color: "#e5e5e5",
-          fontFamily: "sans-serif",
+      <SplashScreen
+        onComplete={() => {
+          setSplashDone(true);
         }}
-      >
-        <span style={{ fontSize: "1.25rem" }}>Chargement Rebellion Luxury…</span>
-      </div>
+      />
     );
   }
 

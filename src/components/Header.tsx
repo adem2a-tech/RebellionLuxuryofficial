@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ChevronDown } from "lucide-react";
@@ -43,7 +43,38 @@ const Header = ({ onOpenChat }: HeaderProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
 
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const onResize = () => {
+      if (window.innerWidth >= 1024) setIsMobileMenuOpen(false);
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [isMobileMenuOpen]);
+
+  useEffect(() => {
+    if (isMobileMenuOpen) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "";
+    return () => { document.body.style.overflow = ""; };
+  }, [isMobileMenuOpen]);
+
   return (
+    <>
+      {/* Overlay mobile : clic dehors pour fermer */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
+            aria-hidden
+          />
+        )}
+      </AnimatePresence>
+
     <motion.header
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
@@ -51,23 +82,23 @@ const Header = ({ onOpenChat }: HeaderProps) => {
       className="fixed top-0 left-0 right-0 z-50 bg-black/98 backdrop-blur-xl border-b border-white/[0.08]"
     >
       <div className="container mx-auto px-4 lg:px-8">
-        <div className="flex items-center justify-between h-16 lg:h-20 gap-6 lg:gap-10">
+        <div className="flex items-center justify-between h-16 lg:h-20 gap-4 lg:gap-6">
           {/* Logo + Nom — style luxe */}
           <Link
             to="/"
-            className="flex items-center gap-3 shrink-0 group"
+            className="flex items-center gap-2 shrink-0 group"
             aria-label="Rebellion Luxury - Accueil"
           >
-            <div className="rounded-full overflow-hidden h-11 w-11 lg:h-12 lg:w-12 shrink-0 border border-white/25 ring-1 ring-white/10 flex items-center justify-center bg-white/[0.06] transition-all duration-300 group-hover:border-white/40 group-hover:ring-white/20">
+            <div className="logo-round overflow-hidden h-10 w-10 lg:h-12 lg:w-12 shrink-0 flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
               <img
                 src="/rebellion-luxury-logo.png"
                 alt="Rebellion Luxury"
-                className="w-[82%] h-[82%] object-contain"
+                className="w-full h-full object-cover"
               />
             </div>
-            <span className="font-luxury text-lg lg:text-xl font-semibold tracking-[0.28em] text-white/95 uppercase group-hover:text-white transition-colors duration-300">
-              <span className="font-bold tracking-[0.32em]">Rebellion</span>
-              <span className="font-medium text-white/90 tracking-[0.2em] ml-0.5">Luxury</span>
+            <span className="font-luxury text-sm lg:text-base font-semibold tracking-[0.24em] text-white/95 uppercase group-hover:text-white transition-colors duration-300">
+              <span className="font-bold tracking-[0.28em]">Rebellion</span>
+              <span className="font-medium text-white/90 tracking-[0.18em] ml-0.5">Luxury</span>
             </span>
           </Link>
 
@@ -123,18 +154,9 @@ const Header = ({ onOpenChat }: HeaderProps) => {
             })}
           </nav>
 
-          {/* Compte + CTA — finition premium */}
-          <div className="hidden lg:flex items-center gap-3 shrink-0">
+          {/* Compte utilisateur */}
+          <div className="hidden lg:flex items-center shrink-0">
             <UserAccountDropdown />
-            <div className="h-5 w-px bg-white/10" aria-hidden />
-            <Button
-              variant="default"
-              size="sm"
-              onClick={() => onOpenChat()}
-              className="font-luxury font-semibold text-sm tracking-[0.2em] uppercase h-10 px-5 rounded-md bg-white text-black border border-white/90 hover:bg-white/95 hover:border-white hover:shadow-[0_0_24px_rgba(255,255,255,0.15)] transition-all duration-300"
-            >
-              Louer un véhicule
-            </Button>
           </div>
 
           {/* Mobile menu button — 44px min touch target */}
@@ -150,56 +172,79 @@ const Header = ({ onOpenChat }: HeaderProps) => {
         </div>
 
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu — fluide, police haut de gamme, beau */}
         <AnimatePresence>
           {isMobileMenuOpen && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className="lg:hidden overflow-hidden border-t border-border"
+              transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="lg:hidden overflow-hidden border-t border-white/[0.06] bg-black"
             >
-              <div className="px-4 py-3 border-b border-white/10">
-                <UserAccountDropdown className="w-full justify-start" />
-              </div>
-              <nav className="flex flex-col gap-0 py-4">
-                {navItems.flatMap((item) => {
-                  const majorTabClass = "block px-4 py-3 min-h-[44px] flex items-center text-sm font-semibold uppercase tracking-wider text-[#ffffff] hover:text-[#ffffff] hover:bg-muted/50 active:bg-muted touch-manipulation";
-                  const subTabClass = "block px-6 py-3 min-h-[44px] flex items-center text-sm font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-muted/50 active:bg-muted touch-manipulation";
-                  const separator = <div key={`sep-${item.label}`} className="mx-4 my-1 border-b border-white/10" aria-hidden />;
-                  if ("subItems" in item && item.subItems) {
-                    return [
-                      <Link key={item.label} to={item.href} onClick={() => setIsMobileMenuOpen(false)} className={majorTabClass}>
-                        {item.label}
-                      </Link>,
-                      ...item.subItems.map((sub) => (
-                        <Link key={sub.label} to={sub.href} onClick={() => setIsMobileMenuOpen(false)} className={subTabClass}>
-                          {sub.label}
-                        </Link>
-                      )),
-                      separator,
-                    ];
-                  }
-                  return [
-                    <Link key={item.label} to={item.href} onClick={() => setIsMobileMenuOpen(false)} className={majorTabClass}>
-                      {item.label}
-                    </Link>,
-                    separator,
-                  ];
-                })}
-                <div className="px-4 pt-4">
-                  <Button
-                    variant="default"
-                    size="lg"
-                    className="w-full bg-primary font-bold uppercase tracking-wider"
-                    onClick={() => {
-                      onOpenChat();
-                      setIsMobileMenuOpen(false);
-                    }}
-                  >
-                    Louer un véhicule
-                  </Button>
+              <nav className="flex flex-col gap-1 py-4 pb-5 px-3 antialiased" style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}>
+                <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="min-h-[52px] pl-4 pr-4 flex items-center rounded-2xl text-[17px] font-semibold text-white bg-white/[0.04] hover:bg-white/[0.08] active:bg-white/[0.1] transition-all duration-300 ease-out border-l-2 border-white/40">
+                  Accueil
+                </Link>
+
+                <div className="pt-3 pb-1.5 px-4 flex items-center gap-2.5">
+                  <span className="text-white/35 text-sm">—</span>
+                  <span className="text-[13px] font-semibold uppercase tracking-wider text-white/50">Véhicules</span>
+                </div>
+                <Link to="/vehicules" onClick={() => setIsMobileMenuOpen(false)} className="min-h-[52px] px-4 flex items-center rounded-2xl text-[17px] font-medium text-white/95 hover:bg-white/[0.06] active:bg-white/[0.1] transition-all duration-300 ease-out">
+                  Catalogue
+                </Link>
+                <Link to="/calculer-prix" onClick={() => setIsMobileMenuOpen(false)} className="min-h-[52px] px-4 flex items-center rounded-2xl text-[17px] font-medium text-white/95 hover:bg-white/[0.06] active:bg-white/[0.1] transition-all duration-300 ease-out">
+                  Calculez le prix
+                </Link>
+
+                <div className="pt-4 pb-1.5 px-4 flex items-center gap-2.5">
+                  <span className="text-white/35 text-sm">—</span>
+                  <span className="text-[13px] font-semibold uppercase tracking-wider text-white/50">Loue ton véhicule</span>
+                </div>
+                <Link to="/loue-ton-vehicule" onClick={() => setIsMobileMenuOpen(false)} className="min-h-[52px] px-4 flex items-center rounded-2xl text-[17px] font-medium text-white/95 hover:bg-white/[0.06] active:bg-white/[0.1] transition-all duration-300 ease-out">
+                  Louer
+                </Link>
+                <Link to="/verifier-ma-demande" onClick={() => setIsMobileMenuOpen(false)} className="min-h-[52px] px-4 flex items-center rounded-2xl text-[17px] font-medium text-white/95 hover:bg-white/[0.06] active:bg-white/[0.1] transition-all duration-300 ease-out">
+                  Voir mes demandes
+                </Link>
+
+                <Link to="/a-propos" onClick={() => setIsMobileMenuOpen(false)} className="min-h-[52px] pl-4 pr-4 flex items-center rounded-2xl text-[17px] font-semibold text-white bg-white/[0.04] hover:bg-white/[0.08] active:bg-white/[0.1] transition-all duration-300 ease-out border-l-2 border-white/40">
+                  À propos
+                </Link>
+                <Link to="/rentabilite" onClick={() => setIsMobileMenuOpen(false)} className="min-h-[52px] px-4 flex items-center rounded-2xl text-[17px] font-medium text-white/95 hover:bg-white/[0.06] active:bg-white/[0.1] transition-all duration-300 ease-out">
+                  Rentabilité
+                </Link>
+                <Link to="/transport" onClick={() => setIsMobileMenuOpen(false)} className="min-h-[52px] px-4 flex items-center rounded-2xl text-[17px] font-medium text-white/95 hover:bg-white/[0.06] active:bg-white/[0.1] transition-all duration-300 ease-out">
+                  Transport
+                </Link>
+                <Link to="/reseaux" onClick={() => setIsMobileMenuOpen(false)} className="min-h-[52px] px-4 flex items-center rounded-2xl text-[17px] font-medium text-white/95 hover:bg-white/[0.06] active:bg-white/[0.1] transition-all duration-300 ease-out">
+                  Réseaux
+                </Link>
+
+                <div className="my-4 mx-2 h-px bg-white/[0.06]" aria-hidden />
+
+                {/* Contact + Espace pro en bas à gauche */}
+                <div className="flex flex-col gap-1.5 w-full items-start">
+                  <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="min-h-[52px] pl-4 pr-4 flex items-center rounded-2xl text-[17px] font-semibold text-white bg-white/[0.04] hover:bg-white/[0.08] active:bg-white/[0.1] transition-all duration-300 ease-out border-l-2 border-white/40">
+                    Contact
+                  </Link>
+                  <Link to="/espace-pro" onClick={() => setIsMobileMenuOpen(false)} className="min-h-[52px] pl-4 pr-4 flex items-center rounded-2xl text-[17px] font-medium text-white/80 hover:bg-white/[0.06] hover:text-white/95 active:bg-white/[0.08] transition-all duration-300 ease-out">
+                    Espace pro
+                  </Link>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => { onOpenChat(); setIsMobileMenuOpen(false); }}
+                  className="min-h-[56px] w-full flex items-center justify-center gap-3 rounded-2xl bg-white text-black font-semibold text-[17px] hover:bg-white/95 active:scale-[0.98] transition-all duration-300 ease-out shadow-[0_2px_16px_rgba(255,255,255,0.12)] mt-4"
+                >
+                  Louer un véhicule
+                  <span className="logo-round w-6 h-6 shrink-0 flex items-center justify-center overflow-hidden"><img src="/rebellion-luxury-logo.png" alt="" className="w-full h-full object-cover opacity-90" /></span>
+                </button>
+
+                <div className="mt-4 min-h-[48px] flex items-center px-4">
+                  <UserAccountDropdown className="w-full justify-start text-white/60 hover:text-white text-[15px] transition-colors duration-300" />
                 </div>
               </nav>
             </motion.div>
@@ -207,6 +252,7 @@ const Header = ({ onOpenChat }: HeaderProps) => {
         </AnimatePresence>
       </div>
     </motion.header>
+    </>
   );
 };
 

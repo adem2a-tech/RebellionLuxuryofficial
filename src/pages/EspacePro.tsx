@@ -16,6 +16,9 @@ import type { VehicleRequest } from "@/data/vehicleRequests";
 import { getPendingLeads, getAllLeads, markLeadContacted } from "@/data/leads";
 import { addAdminVehicle, getAdminVehicles, removeAdminVehicle, updateAdminVehicle } from "@/data/adminVehicles";
 import { getBaseFleet, updateBaseVehicle } from "@/data/baseFleet";
+import { getAllVehicles } from "@/data/vehicles";
+import { toast } from "sonner";
+import { Sparkles } from "lucide-react";
 import type { BaseFleetInput } from "@/data/baseFleet";
 import type { PricingTier, VehicleSpec } from "@/data/vehicles";
 import { Input } from "@/components/ui/input";
@@ -50,20 +53,17 @@ function EspaceProLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-black espace-pro-led flex items-center justify-center p-4">
-      <div
-        className="w-full max-w-sm rounded-2xl p-8 espace-pro-led-card border border-white/20"
-        style={{ boxShadow: "0 0 24px rgba(251,191,36,0.15), inset 0 1px 0 rgba(255,255,255,0.08)" }}
-      >
+    <div className="min-h-screen espace-pro-led flex items-center justify-center p-6">
+      <div className="w-full max-w-sm rounded-2xl p-8 espace-pro-led-card border border-white/10">
         <div className="flex items-center justify-center gap-3 mb-6">
-          <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/30">
-            <Lock className="w-6 h-6 text-amber-400" style={{ filter: "drop-shadow(0 0 8px rgba(251,191,36,0.5))" }} />
+          <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
+            <Lock className="w-6 h-6 text-white/80" />
           </div>
-          <h1 className="text-xl font-bold uppercase tracking-[0.2em] text-amber-400 espace-pro-led-title">
+          <h1 className="text-lg font-semibold tracking-wide text-white espace-pro-led-title">
             Espace pro
           </h1>
         </div>
-        <p className="text-center text-white/60 text-sm mb-6">Entrez le code d&apos;accès</p>
+        <p className="text-center text-white/50 text-sm mb-6">Entrez le code d&apos;accès</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
@@ -71,14 +71,14 @@ function EspaceProLogin() {
             onChange={(e) => setCode(e.target.value)}
             placeholder="Code"
             autoComplete="off"
-            className="w-full px-4 py-3 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition-colors"
+            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-colors"
           />
           {error && <p className="text-xs text-red-400">{error}</p>}
-          <Button type="submit" className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-black font-semibold uppercase tracking-wider rounded-lg transition-colors">
+          <Button type="submit" className="w-full py-3 bg-white hover:bg-white/90 text-black font-medium rounded-xl transition-colors">
             Connexion
           </Button>
         </form>
-        <Button variant="ghost" size="sm" asChild className="w-full mt-4 text-white/50 hover:text-white/80">
+        <Button variant="ghost" size="sm" asChild className="w-full mt-4 text-white/50 hover:text-white hover:bg-white/5 rounded-xl">
           <Link to="/">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Retour au site
@@ -194,117 +194,118 @@ function FlotteBaseSection() {
     setPricing([]);
   };
 
+  const inputClass = "w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-colors";
+  const labelClass = "text-xs font-medium text-white/60 tracking-wide block mb-1.5";
+
   return (
-    <Card className="espace-pro-led-card border border-white/20 bg-black/60 mb-8 overflow-hidden">
+    <Card className="espace-pro-led-card border border-white/10 mb-8 overflow-hidden">
       <CardHeader className="pb-2">
-        <CardTitle className="text-amber-400 espace-pro-led-title text-lg flex items-center gap-2">
-          <Car className="w-5 h-5 text-amber-400/90" /> Flotte de base ({baseFleet.length})
+        <CardTitle className="text-white espace-pro-led-title text-base flex items-center gap-2">
+          <Car className="w-5 h-5 text-white/70" /> Flotte de base ({baseFleet.length})
         </CardTitle>
-        <p className="text-xs text-white/50 mt-1">Audi, McLaren, Maserati — modifiables ici</p>
+        <p className="text-sm text-white/50 mt-1">Audi, McLaren, Maserati — modifiables ici</p>
       </CardHeader>
       <CardContent>
-        {/* Liste des véhicules de base */}
         <div className="space-y-2 mb-6">
           {baseFleet.map((v) => (
-            <div key={v.slug} className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-black/30 hover:border-amber-500/20 transition-colors">
+            <div key={v.slug} className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-white/[0.03] hover:border-white/15 transition-colors">
               <div>
                 <p className="font-medium text-white">{v.name}</p>
-                <p className="text-xs text-white/50">{v.year} · {v.specs.power}</p>
+                <p className="text-sm text-white/50">{v.year} · {v.specs.power}</p>
               </div>
-              <Button size="sm" variant="outline" onClick={() => handleEdit(v)} className="border-amber-500/40 text-amber-400 hover:bg-amber-500/10" title="Modifier">
+              <Button size="sm" variant="outline" onClick={() => handleEdit(v)} className="border-white/20 text-white/80 hover:bg-white/10 rounded-lg" title="Modifier">
                 <Pencil className="w-4 h-4" />
               </Button>
             </div>
           ))}
         </div>
 
-        {/* Formulaire d'édition */}
         {editingSlug && (
-          <form onSubmit={handleSubmit} className="space-y-6 p-4 rounded-xl border border-amber-500/30 bg-black/50">
-            <h3 className="text-amber-400 text-sm font-medium">Modifier {baseFleet.find((v) => v.slug === editingSlug)?.name}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <label className="text-xs uppercase tracking-wider text-white/60">Marque *</label>
-                <input name="brand" value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Ex. Maserati" required className="w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+          <form onSubmit={handleSubmit} className="space-y-6 p-5 rounded-xl border border-white/10 bg-white/[0.03]">
+            <h3 className="text-sm font-medium text-white">Modifier {baseFleet.find((v) => v.slug === editingSlug)?.name}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="space-y-1.5">
+                <label className={labelClass}>Marque *</label>
+                <input name="brand" value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Ex. Maserati" required className={inputClass} />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs uppercase tracking-wider text-white/60">Modèle *</label>
-                <input name="model" value={model} onChange={(e) => setModel(e.target.value)} placeholder="Ex. Quattroporte GTS" required className="w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+              <div className="space-y-1.5">
+                <label className={labelClass}>Modèle *</label>
+                <input name="model" value={model} onChange={(e) => setModel(e.target.value)} placeholder="Ex. Quattroporte GTS" required className={inputClass} />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs uppercase tracking-wider text-white/60">Année *</label>
-                <input name="year" type="number" value={year} onChange={(e) => setYear(Number(e.target.value) || 0)} min={1900} max={new Date().getFullYear() + 1} className="w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+              <div className="space-y-1.5">
+                <label className={labelClass}>Année *</label>
+                <input name="year" type="number" value={year} onChange={(e) => setYear(Number(e.target.value) || 0)} min={1900} max={new Date().getFullYear() + 1} className={inputClass} />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs uppercase tracking-wider text-white/60">Puissance *</label>
-                <input name="power" value={power} onChange={(e) => setPower(e.target.value)} placeholder="Ex. 530 CH" required className="w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+              <div className="space-y-1.5">
+                <label className={labelClass}>Puissance *</label>
+                <input name="power" value={power} onChange={(e) => setPower(e.target.value)} placeholder="Ex. 530 CH" required className={inputClass} />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs uppercase tracking-wider text-white/60">Transmission *</label>
-                <input name="transmission" value={transmission} onChange={(e) => setTransmission(e.target.value)} placeholder="Ex. Automatique" required className="w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+              <div className="space-y-1.5">
+                <label className={labelClass}>Transmission *</label>
+                <input name="transmission" value={transmission} onChange={(e) => setTransmission(e.target.value)} placeholder="Ex. Automatique" required className={inputClass} />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs uppercase tracking-wider text-white/60">Catégorie</label>
-                <input name="category" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Ex. Sport" className="w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+              <div className="space-y-1.5">
+                <label className={labelClass}>Catégorie</label>
+                <input name="category" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Ex. Sport" className={inputClass} />
               </div>
-              <div className="space-y-2 md:col-span-2">
-                <label className="text-xs uppercase tracking-wider text-white/60">Description *</label>
-                <textarea name="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Décrivez le véhicule..." required rows={3} className="w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+              <div className="space-y-1.5 md:col-span-2">
+                <label className={labelClass}>Description *</label>
+                <textarea name="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Décrivez le véhicule..." required rows={3} className={inputClass + " resize-none"} />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs uppercase tracking-wider text-white/60">Caution</label>
-                <input name="caution" value={caution} onChange={(e) => setCaution(e.target.value)} placeholder="Ex. 5'000 CHF" className="w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+              <div className="space-y-1.5">
+                <label className={labelClass}>Caution</label>
+                <input name="caution" value={caution} onChange={(e) => setCaution(e.target.value)} placeholder="Ex. 5'000 CHF" className={inputClass} />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs uppercase tracking-wider text-white/60">Localisation</label>
-                <input name="location" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Ex. Suisse romande" className="w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+              <div className="space-y-1.5">
+                <label className={labelClass}>Localisation</label>
+                <input name="location" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Ex. Suisse romande" className={inputClass} />
               </div>
-              <div className="space-y-2 md:col-span-2 lg:col-span-3">
-                <label className="text-xs uppercase tracking-wider text-white/60">Vidéo (URL ou chemin)</label>
-                <input name="video" value={video} onChange={(e) => setVideo(e.target.value)} placeholder="Ex. /vehicle-maserati.mp4" className="w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+              <div className="space-y-1.5 md:col-span-2 lg:col-span-3">
+                <label className={labelClass}>Vidéo (URL ou chemin)</label>
+                <input name="video" value={video} onChange={(e) => setVideo(e.target.value)} placeholder="Ex. /vehicle-maserati.mp4" className={inputClass} />
               </div>
-              <div className="space-y-2 md:col-span-2 lg:col-span-3">
-                <label className="text-xs uppercase tracking-wider text-white/60">Lien Boboloc (disponibilités)</label>
-                <input name="availabilityUrl" type="url" value={availabilityUrl} onChange={(e) => setAvailabilityUrl(e.target.value)} placeholder="https://www.boboloc.com/..." className="w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+              <div className="space-y-1.5 md:col-span-2 lg:col-span-3">
+                <label className={labelClass}>Lien Boboloc (disponibilités)</label>
+                <input name="availabilityUrl" type="url" value={availabilityUrl} onChange={(e) => setAvailabilityUrl(e.target.value)} placeholder="https://www.boboloc.com/..." className={inputClass} />
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-xs uppercase tracking-wider text-white/60">Photos * (max {MAX_IMAGES})</label>
+              <label className={labelClass}>Photos * (max {MAX_IMAGES})</label>
               <div className="flex flex-wrap gap-2">
                 {images.map((src, i) => (
                   <div key={i} className="relative">
-                    <img src={src} alt="" className="w-20 h-20 object-cover rounded" />
-                    <button type="button" onClick={() => setImages((p) => p.filter((_, j) => j !== i))} className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-white text-xs flex items-center justify-center"><X className="w-3 h-3" /></button>
+                    <img src={src} alt="" className="w-20 h-20 object-cover rounded-lg" />
+                    <button type="button" onClick={() => setImages((p) => p.filter((_, j) => j !== i))} className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-red-600 text-white text-xs flex items-center justify-center hover:bg-red-500"><X className="w-3 h-3" /></button>
                   </div>
                 ))}
                 {images.length < MAX_IMAGES && (
-                  <button type="button" onClick={() => fileInputRef.current?.click()} className="w-20 h-20 rounded-lg border border-dashed border-white/30 flex items-center justify-center text-white/40 hover:border-amber-500/50 hover:text-amber-400/80 transition-colors">
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="w-20 h-20 rounded-xl border border-dashed border-white/20 flex items-center justify-center text-white/40 hover:border-white/30 hover:text-white/60 transition-colors">
                     <ImagePlus className="w-6 h-6" />
                   </button>
                 )}
               </div>
               <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImageChange} className="hidden" />
             </div>
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label className="text-xs uppercase tracking-wider text-white/60">Grille tarifaire</label>
-                <Button type="button" size="sm" variant="outline" onClick={addPricingRow} className="border-amber-500/40 text-amber-400 text-xs">+ Ligne</Button>
+                <label className={labelClass}>Grille tarifaire</label>
+                <Button type="button" size="sm" variant="outline" onClick={addPricingRow} className="border-white/20 text-white/80 hover:bg-white/10 text-xs rounded-lg">+ Ligne</Button>
               </div>
               <div className="space-y-2">
                 {pricing.map((t, i) => (
                   <div key={i} className="flex gap-2 flex-wrap items-center">
-                    <input value={t.duration} onChange={(e) => updatePricingRow(i, "duration", e.target.value)} placeholder="Durée" className="flex-1 min-w-[120px] px-3 py-2 rounded-lg bg-black/50 border border-white/20 text-white text-sm" />
-                    <input value={t.km} onChange={(e) => updatePricingRow(i, "km", e.target.value)} placeholder="Km" className="w-24 px-3 py-2 rounded-lg bg-black/50 border border-white/20 text-white text-sm" />
-                    <input value={t.price} onChange={(e) => updatePricingRow(i, "price", e.target.value)} placeholder="Prix" className="w-28 px-3 py-2 rounded-lg bg-black/50 border border-white/20 text-white text-sm" />
+                    <input value={t.duration} onChange={(e) => updatePricingRow(i, "duration", e.target.value)} placeholder="Durée" className={"flex-1 min-w-[120px] " + inputClass} />
+                    <input value={t.km} onChange={(e) => updatePricingRow(i, "km", e.target.value)} placeholder="Km" className={"w-24 " + inputClass} />
+                    <input value={t.price} onChange={(e) => updatePricingRow(i, "price", e.target.value)} placeholder="Prix" className={"w-28 " + inputClass} />
                   </div>
                 ))}
               </div>
             </div>
-            <div className="flex gap-3">
-              <Button type="submit" className="bg-amber-500 hover:bg-amber-400 text-black font-semibold uppercase tracking-wider rounded-lg py-6 transition-colors">
+            <div className="flex gap-3 pt-1">
+              <Button type="submit" className="bg-white hover:bg-white/90 text-black font-medium rounded-xl py-6 px-6">
                 <Pencil className="w-4 h-4 mr-2" /> Enregistrer
               </Button>
-              <Button type="button" variant="outline" onClick={resetForm} className="border-white/30 text-white/90 py-6">Annuler</Button>
+              <Button type="button" variant="outline" onClick={resetForm} className="border-white/20 text-white/80 hover:bg-white/10 py-6 rounded-xl">Annuler</Button>
             </div>
           </form>
         )}
@@ -452,96 +453,66 @@ function MesVehiculesSection() {
     setPricing(PRICING_TEMPLATES.map((t) => ({ ...t, price: "" })));
   };
 
+  const inputClass = "w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-colors";
+  const labelClass = "text-xs font-medium text-white/60 tracking-wide block mb-1.5";
+
+  const handleSyncIA = () => {
+    const fleet = getAllVehicles();
+    const names = fleet.map((v) => v.name).join(", ") || "—";
+    toast.success("L'IA est à jour", {
+      description: fleet.length
+        ? `Rebellion IA a accès à ${fleet.length} véhicule${fleet.length > 1 ? "s" : ""} : ${names}. Elle peut répondre sur les tarifs, disponibilités et fiches.`
+        : "Ajoutez des véhicules ci-dessous pour que l'IA puisse en parler aux visiteurs.",
+      duration: 5000,
+    });
+  };
+
   return (
-    <Card className="espace-pro-led-card border border-white/20 bg-black/60 mb-8 overflow-hidden">
+    <Card className="espace-pro-led-card border border-white/10 mb-8 overflow-hidden">
       <CardHeader className="pb-2">
-        <CardTitle className="text-amber-400 espace-pro-led-title text-lg flex items-center gap-2">
-          <Car className="w-5 h-5 text-amber-400/90" /> Mes véhicules ({adminVehicles.length})
-        </CardTitle>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <CardTitle className="text-white espace-pro-led-title text-base flex items-center gap-2">
+            <Car className="w-5 h-5 text-white/70" /> Mes véhicules ({adminVehicles.length})
+          </CardTitle>
+          <Button variant="outline" size="sm" onClick={handleSyncIA} className="border-white/20 text-white/80 hover:bg-white/10 shrink-0">
+            <Sparkles className="w-4 h-4 mr-1.5" />
+            Synchroniser avec l&apos;IA
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <label className="text-xs uppercase tracking-wider text-white/60">Marque *</label>
-              <input
-                name="brand"
-                value={brand}
-                onChange={(e) => setBrand(e.target.value)}
-                placeholder="Ex. Porsche"
-                required
-                className="w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition-colors"
-              />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="space-y-1.5">
+              <label className={labelClass}>Marque *</label>
+              <input name="brand" value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Ex. Porsche" required className={inputClass} />
             </div>
-            <div className="space-y-2">
-              <label className="text-xs uppercase tracking-wider text-white/60">Modèle *</label>
-              <input
-                name="model"
-                value={model}
-                onChange={(e) => setModel(e.target.value)}
-                placeholder="Ex. Macan"
-                required
-                className="w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition-colors"
-              />
+            <div className="space-y-1.5">
+              <label className={labelClass}>Modèle *</label>
+              <input name="model" value={model} onChange={(e) => setModel(e.target.value)} placeholder="Ex. Macan" required className={inputClass} />
             </div>
-            <div className="space-y-2">
-              <label className="text-xs uppercase tracking-wider text-white/60">Année *</label>
-              <input
-                name="year"
-                type="number"
-                value={year}
-                onChange={(e) => setYear(Number(e.target.value) || 0)}
-                min={1900}
-                max={new Date().getFullYear() + 1}
-                className="w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition-colors"
-              />
+            <div className="space-y-1.5">
+              <label className={labelClass}>Année *</label>
+              <input name="year" type="number" value={year} onChange={(e) => setYear(Number(e.target.value) || 0)} min={1900} max={new Date().getFullYear() + 1} className={inputClass} />
             </div>
-            <div className="space-y-2">
-              <label className="text-xs uppercase tracking-wider text-white/60">Puissance *</label>
-              <input
-                name="power"
-                value={power}
-                onChange={(e) => setPower(e.target.value)}
-                placeholder="Ex. 420 CH"
-                required
-                className="w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition-colors"
-              />
+            <div className="space-y-1.5">
+              <label className={labelClass}>Puissance *</label>
+              <input name="power" value={power} onChange={(e) => setPower(e.target.value)} placeholder="Ex. 420 CH" required className={inputClass} />
             </div>
-            <div className="space-y-2">
-              <label className="text-xs uppercase tracking-wider text-white/60">Transmission *</label>
-              <input
-                name="transmission"
-                value={transmission}
-                onChange={(e) => setTransmission(e.target.value)}
-                placeholder="Ex. Automatique"
-                required
-                className="w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition-colors"
-              />
+            <div className="space-y-1.5">
+              <label className={labelClass}>Transmission *</label>
+              <input name="transmission" value={transmission} onChange={(e) => setTransmission(e.target.value)} placeholder="Ex. Automatique" required className={inputClass} />
             </div>
-            <div className="space-y-2">
-              <label className="text-xs uppercase tracking-wider text-white/60">Catégorie</label>
-              <input
-                name="category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                placeholder="Ex. Sport"
-                className="w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition-colors"
-              />
+            <div className="space-y-1.5">
+              <label className={labelClass}>Catégorie</label>
+              <input name="category" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Ex. Sport" className={inputClass} />
             </div>
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-xs uppercase tracking-wider text-white/60">Description *</label>
-              <textarea
-                name="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Décrivez le véhicule..."
-                required
-                rows={3}
-                className="w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition-colors"
-              />
+            <div className="space-y-1.5 md:col-span-2">
+              <label className={labelClass}>Description *</label>
+              <textarea name="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Décrivez le véhicule..." required rows={3} className={inputClass + " resize-none"} />
             </div>
-            <div className="space-y-2">
-              <label className="text-xs uppercase tracking-wider text-white/60">Caution</label>
+            <div className="space-y-1.5">
+              <label className={labelClass}>Caution</label>
               <input
                 name="caution"
                 value={caution}
@@ -885,20 +856,40 @@ function EspaceProContent() {
     <div className="min-h-screen bg-black espace-pro-led relative">
       {/* Header LED */}
       <header className="sticky top-0 z-20 border-b border-white/10 espace-pro-led-header bg-black/90 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between max-w-5xl">
-          <Button variant="ghost" size="sm" asChild className="text-white/60 hover:text-amber-400 transition-colors">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between max-w-5xl flex-wrap gap-2">
+          <Button variant="ghost" size="sm" asChild className="text-white/60 hover:text-white transition-colors">
             <Link to="/">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Retour
             </Link>
           </Button>
-          <h1 className="font-bold uppercase tracking-[0.15em] text-amber-400 espace-pro-led-title text-lg">
+          <h1 className="font-bold uppercase tracking-[0.15em] text-white espace-pro-led-title text-lg">
             Espace pro
           </h1>
-          <Button variant="ghost" size="sm" onClick={logout} className="text-white/60 hover:text-amber-400 transition-colors">
-            <LogOut className="w-4 h-4 mr-2" />
-            Déconnexion
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const fleet = getAllVehicles();
+                const names = fleet.map((v) => v.name).join(", ") || "—";
+                toast.success("L'IA est à jour", {
+                  description: fleet.length
+                    ? `Rebellion IA a accès à ${fleet.length} véhicule${fleet.length > 1 ? "s" : ""} : ${names}. Elle peut répondre sur les tarifs, disponibilités et fiches.`
+                    : "Aucun véhicule en base. Ajoutez des véhicules dans « Mes véhicules » ou « Flotte de base ».",
+                  duration: 5000,
+                });
+              }}
+              className="border-white/20 text-white/90 hover:bg-white/10 shrink-0"
+            >
+              <Sparkles className="w-4 h-4 mr-1.5" />
+              Mettre à jour l&apos;IA
+            </Button>
+            <Button variant="ghost" size="sm" onClick={logout} className="text-white/60 hover:text-white transition-colors">
+              <LogOut className="w-4 h-4 mr-2" />
+              Déconnexion
+            </Button>
+          </div>
         </div>
       </header>
 

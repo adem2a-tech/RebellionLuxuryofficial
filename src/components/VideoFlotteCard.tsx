@@ -10,6 +10,10 @@ interface VideoFlotteCardProps {
   vehicleType?: string;
   description?: string;
   className?: string;
+  /** Affiche un badge Best seller */
+  bestSeller?: boolean;
+  /** Courtes descriptions 3D affichées autour de la voiture (ex: "570 CH", "Portes papillon") */
+  specs3d?: string[];
 }
 
 export function VideoFlotteCard({
@@ -20,6 +24,8 @@ export function VideoFlotteCard({
   vehicleType,
   description,
   className,
+  bestSeller,
+  specs3d = [],
 }: VideoFlotteCardProps) {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -155,18 +161,25 @@ export function VideoFlotteCard({
 
           {/* Glass card + video */}
           <div className="relative rounded-2xl overflow-hidden border border-border bg-card/80 backdrop-blur-sm shadow-2xl">
-            <div className="px-4 pt-4 pb-2 text-left space-y-0.5">
-              <p className="font-display text-base font-semibold text-foreground">{title}</p>
-              {vehicleType && (
-                <p className="text-xs font-medium text-primary uppercase tracking-wider">
-                  {vehicleType}
-                </p>
+            <div className="px-4 pt-4 pb-2 text-left space-y-0.5 flex items-center justify-between gap-2">
+              <div>
+                <p className="font-display text-base font-semibold text-foreground">{title}</p>
+                {vehicleType && (
+                  <p className="text-xs font-medium text-primary uppercase tracking-wider">
+                    {vehicleType}
+                  </p>
+                )}
+              </div>
+              {bestSeller && (
+                <span className="shrink-0 rounded-full border border-amber-400/50 bg-amber-500/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-200">
+                  Best seller
+                </span>
               )}
             </div>
-            {/* Vidéo agrandie + bordure LED pulsée */}
+            {/* Image/vidéo — object-contain pour tout voir + descriptions 3D autour */}
             <div className="relative px-3 pb-3">
               <motion.div
-                className="relative rounded-xl overflow-hidden"
+                className="relative rounded-xl overflow-visible"
                 animate={{
                   boxShadow: [
                     "inset 0 0 0 2px hsl(var(--primary) / 0.5), 0 0 12px hsl(var(--primary) / 0.25)",
@@ -181,24 +194,87 @@ export function VideoFlotteCard({
                   ease: "easeInOut",
                 }}
               >
-                <div className={`w-full overflow-hidden ${imageSrc ? "aspect-[3/4] min-h-[320px] sm:min-h-[380px]" : "aspect-[16/9] min-h-[240px] sm:min-h-[280px]"}`}>
-                  {imageSrc ? (
-                    <img
-                      src={imageSrc}
-                      alt={ariaLabel}
-                      className="w-full h-full object-cover object-center"
-                    />
-                  ) : videoSrc ? (
-                    <video
-                      src={videoSrc}
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                      className="w-full h-full object-cover scale-[1.08]"
-                      aria-label={ariaLabel}
-                    />
-                  ) : null}
+                <div className={`relative w-full ${imageSrc ? "aspect-[4/3] min-h-[260px] sm:min-h-[300px]" : "aspect-[16/9] min-h-[240px] sm:min-h-[280px]"}`}>
+                  <div className="absolute inset-0 overflow-hidden rounded-xl">
+                    {imageSrc ? (
+                      <img
+                        src={imageSrc}
+                        alt={ariaLabel}
+                        className="w-full h-full object-contain bg-black/50"
+                      />
+                    ) : videoSrc ? (
+                      <video
+                        src={videoSrc}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="w-full h-full object-contain"
+                        aria-label={ariaLabel}
+                      />
+                    ) : null}
+                  </div>
+                  {/* Descriptions brèves 3D flottantes détourées */}
+                  {specs3d.length > 0 && (
+                    <>
+                      {specs3d[0] && (
+                        <motion.span
+                          className="spec-3d-floating absolute top-3 left-3 z-10 rounded-lg bg-black/50 backdrop-blur-sm px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white"
+                          style={{
+                            textShadow: "0 0 1px #000, 0 0 1px #000, 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000",
+                            boxShadow: "0 6px 24px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.5)",
+                          }}
+                          initial={{ y: 0 }}
+                          animate={{ y: [0, -3, 0] }}
+                          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                        >
+                          {specs3d[0]}
+                        </motion.span>
+                      )}
+                      {specs3d[1] && (
+                        <motion.span
+                          className="spec-3d-floating absolute top-3 right-3 z-10 rounded-lg bg-black/50 backdrop-blur-sm px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white"
+                          style={{
+                            textShadow: "0 0 1px #000, 0 0 1px #000, 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000",
+                            boxShadow: "0 6px 24px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.5)",
+                          }}
+                          initial={{ y: 0 }}
+                          animate={{ y: [0, -3, 0] }}
+                          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                        >
+                          {specs3d[1]}
+                        </motion.span>
+                      )}
+                      {specs3d[2] && (
+                        <motion.span
+                          className="spec-3d-floating absolute bottom-3 left-3 z-10 rounded-lg bg-black/50 backdrop-blur-sm px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white"
+                          style={{
+                            textShadow: "0 0 1px #000, 0 0 1px #000, 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000",
+                            boxShadow: "0 6px 24px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.5)",
+                          }}
+                          initial={{ y: 0 }}
+                          animate={{ y: [0, -3, 0] }}
+                          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                        >
+                          {specs3d[2]}
+                        </motion.span>
+                      )}
+                      {specs3d[3] && (
+                        <motion.span
+                          className="spec-3d-floating absolute bottom-3 right-3 z-10 rounded-lg bg-black/50 backdrop-blur-sm px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white"
+                          style={{
+                            textShadow: "0 0 1px #000, 0 0 1px #000, 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000",
+                            boxShadow: "0 6px 24px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.5)",
+                          }}
+                          initial={{ y: 0 }}
+                          animate={{ y: [0, -3, 0] }}
+                          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+                        >
+                          {specs3d[3]}
+                        </motion.span>
+                      )}
+                    </>
+                  )}
                 </div>
               </motion.div>
             </div>

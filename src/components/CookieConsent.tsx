@@ -5,28 +5,43 @@ import { Button } from "@/components/ui/button";
 
 const COOKIE_CONSENT_KEY = "rebellion_cookie_consent";
 
+/** Déclencher ceci pour rouvrir le bandeau cookies (ex: lien "Gérer les cookies" dans le footer) */
+export const COOKIE_BANNER_OPEN_EVENT = "rebellion-open-cookie-banner";
+
 export default function CookieConsent() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const consent = localStorage.getItem(COOKIE_CONSENT_KEY);
     if (!consent) {
-      // Petite attente pour ne pas surcharger l'arrivée sur le site
-      const timer = setTimeout(() => setIsVisible(true), 1500);
-      return () => clearTimeout(timer);
+      setIsVisible(true);
+      return;
     }
+    const open = () => setIsVisible(true);
+    window.addEventListener(COOKIE_BANNER_OPEN_EVENT, open);
+    return () => window.removeEventListener(COOKIE_BANNER_OPEN_EVENT, open);
   }, []);
 
   const handleAccept = () => {
     localStorage.setItem(COOKIE_CONSENT_KEY, "accepted");
-    // Cookie technique pour persistance (1 an)
-    document.cookie = `rebellion_consent=accepted; path=/; max-age=31536000; SameSite=Lax`;
+    try {
+      document.cookie = `rebellion_consent=accepted; path=/; max-age=31536000; SameSite=Lax`;
+      if (!document.cookie.includes("rebellion_visit=")) {
+        document.cookie = `rebellion_visit=${Date.now()}; path=/; max-age=31536000; SameSite=Lax`;
+      }
+    } catch {
+      // ignore
+    }
     setIsVisible(false);
   };
 
   const handleDecline = () => {
     localStorage.setItem(COOKIE_CONSENT_KEY, "declined");
-    document.cookie = `rebellion_consent=declined; path=/; max-age=31536000; SameSite=Lax`;
+    try {
+      document.cookie = `rebellion_consent=declined; path=/; max-age=31536000; SameSite=Lax`;
+    } catch {
+      // ignore
+    }
     setIsVisible(false);
   };
 
@@ -38,7 +53,7 @@ export default function CookieConsent() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="fixed bottom-0 left-0 right-0 z-[60] p-4 sm:p-5 pb-[max(1rem,env(safe-area-inset-bottom))]"
+          className="fixed bottom-0 left-0 right-0 z-[110] p-4 sm:p-5 pb-[max(1rem,env(safe-area-inset-bottom))]"
           role="dialog"
           aria-labelledby="cookie-title"
           aria-describedby="cookie-desc"

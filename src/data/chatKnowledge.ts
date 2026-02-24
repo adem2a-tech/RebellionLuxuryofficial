@@ -21,7 +21,10 @@ export const CREATOR = {
   whatsappUrl: "https://wa.me/41799130128",
 } as const;
 
-/** Liens Boboloc — disponibilités en temps réel (mis à jour côté Boboloc) */
+/** Lien direct Boboloc — page véhicules / disponibilités Rebellion Luxury */
+export const BOBOLOC_VEHICLES_URL = "https://boboloc.com/rebellionluxury-7245/vehicles";
+
+/** Liens Boboloc — disponibilités en temps réel par véhicule (mis à jour côté Boboloc) */
 export const BOBOLOC_AVAILABILITY_URLS: Record<string, string> = {
   "Audi R8 V8": "https://www.boboloc.com/rebellionluxury-7245/kezntQs6TguHxEoSYnFb/carDetails",
   "McLaren 570S": "https://www.boboloc.com/rebellionluxury-7245/w841mVrBl2hpGgwHN0dG/carDetails",

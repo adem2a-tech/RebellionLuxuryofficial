@@ -27,13 +27,21 @@ const DEFAULT_PRICING: PricingTier[] = [
 function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const { login } = useAdminAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!login(email, password)) setError("Email ou mot de passe incorrect.");
+    setLoading(true);
+    try {
+      const ok = await login(email, password, rememberMe);
+      if (!ok) setError("Email ou mot de passe incorrect.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -55,9 +63,18 @@ function AdminLogin() {
             placeholder="Mot de passe"
             className="w-full px-3 py-2 rounded bg-zinc-800 border border-zinc-600 text-white placeholder:text-zinc-500 text-sm"
           />
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-zinc-300">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="rounded border-zinc-600 bg-zinc-800 text-amber-500 focus:ring-amber-500"
+            />
+            Maintenir la connexion
+          </label>
           {error && <p className="text-xs text-red-400">{error}</p>}
-          <Button type="submit" className="w-full bg-amber-500 hover:bg-amber-600 text-black">
-            Connexion
+          <Button type="submit" disabled={loading} className="w-full bg-amber-500 hover:bg-amber-600 text-black">
+            {loading ? "Connexion..." : "Connexion"}
           </Button>
         </form>
         <Button variant="ghost" size="sm" asChild className="w-full mt-3 text-zinc-400">
@@ -194,7 +211,8 @@ function DemandesTab() {
 }
 
 function AdminLayout() {
-  const { logout } = useAdminAuth();
+  const { logout, logoutAllDevices } = useAdminAuth();
+  const [loggingOutAll, setLoggingOutAll] = useState(false);
   const [tab, setTab] = useState<"dashboard" | "demandes" | "analytics" | "settings">("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -227,7 +245,7 @@ function AdminLayout() {
           ))}
         </nav>
         <div className="absolute bottom-4 left-4 right-4">
-          <Button variant="ghost" size="sm" onClick={logout} className="w-full text-zinc-400">
+          <Button variant="ghost" size="sm" onClick={() => void logout()} className="w-full text-zinc-400">
             <LogOut className="w-4 h-4 mr-2" />
             Déconnexion
           </Button>
@@ -246,8 +264,26 @@ function AdminLayout() {
         {tab === "settings" && (
           <Card className="bg-zinc-900 border-amber-500/20 max-w-md">
             <CardHeader><CardTitle className="text-amber-400">Paramètres</CardTitle></CardHeader>
-            <CardContent>
-              <p className="text-zinc-400 text-sm">Aucun paramètre pour le moment.</p>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-zinc-300 text-sm font-medium mb-1">Session</p>
+                <p className="text-zinc-500 text-xs">
+                  Lors de la prochaine connexion, cochez « Maintenir la connexion » pour rester connecté après fermeture du navigateur (jusqu&apos;à 90 jours). Sinon, la session dure 24 h.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-red-500/50 text-red-400 hover:bg-red-500/10"
+                disabled={loggingOutAll}
+                onClick={async () => {
+                  setLoggingOutAll(true);
+                  await logoutAllDevices();
+                  setLoggingOutAll(false);
+                }}
+              >
+                {loggingOutAll ? "Déconnexion..." : "Déconnexion sur tous les appareils"}
+              </Button>
             </CardContent>
           </Card>
         )}
@@ -257,8 +293,15 @@ function AdminLayout() {
 }
 
 export default function AdminDashboard() {
-  const { isAdmin } = useAdminAuth();
+  const { isAdmin, isCheckingSession } = useAdminAuth();
 
+  if (isCheckingSession) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-amber-400">
+        Chargement...
+      </div>
+    );
+  }
   if (!isAdmin) return <AdminLogin />;
   return <AdminLayout />;
 }

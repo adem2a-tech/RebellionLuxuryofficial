@@ -111,6 +111,23 @@
   }
 
 @layer components {
+  /* Logo Rebellion Luxury : PNG déjà détouré (cercle + fond transparent), affichage rond */
+  img[src*="rebellion-luxury-logo"] {
+    border-radius: 50%;
+    object-fit: contain;
+  }
+  .logo-round {
+    border-radius: 50%;
+    overflow: hidden;
+    aspect-ratio: 1;
+    background: transparent !important;
+  }
+  .logo-round img[src*="rebellion-luxury-logo"] {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
   .text-gradient-orange {
     @apply bg-clip-text text-transparent;
     background-image: var(--gradient-orange);
@@ -275,9 +292,10 @@
     background: transparent !important;
   }
 
-  /* Espace Pro — LED intense */
+  /* Espace Pro — noir, simple, lisible */
   .espace-pro-led {
     position: relative;
+    background: #0a0a0a;
   }
   .espace-pro-led::before {
     content: '';
@@ -285,46 +303,37 @@
     inset: 0;
     pointer-events: none;
     z-index: 0;
-    background:
-      radial-gradient(ellipse 80% 50% at 50% 0%, rgba(251, 191, 36, 0.06) 0%, transparent 50%),
-      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(251, 191, 36, 0.03) 0%, transparent 50%),
-      radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255, 255, 255, 0.02) 0%, transparent 50%);
+    background: radial-gradient(ellipse 70% 40% at 50% 0%, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
   }
   .espace-pro-led-title {
-    text-shadow:
-      0 0 10px rgba(255, 255, 255, 0.6),
-      0 0 24px rgba(255, 255, 255, 0.4),
-      0 0 48px rgba(255, 255, 255, 0.2),
-      0 1px 0 rgba(255, 255, 255, 0.2);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: rgb(255 255 255 / 0.95);
   }
   .espace-pro-led-card {
     position: relative;
-    box-shadow:
-      0 0 12px rgba(255, 255, 255, 0.06),
-      0 0 24px rgba(255, 255, 255, 0.04),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    transition: box-shadow 0.3s ease;
+    background: rgb(255 255 255 / 0.02);
+    border: 1px solid rgb(255 255 255 / 0.08);
+    border-radius: 12px;
+    transition: border-color 0.2s ease, background 0.2s ease;
   }
   .espace-pro-led-card:hover {
-    box-shadow:
-      0 0 20px rgba(255, 255, 255, 0.12),
-      0 0 30px rgba(251, 191, 36, 0.08),
-      0 0 40px rgba(255, 255, 255, 0.08),
-      inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    border-color: rgb(255 255 255 / 0.12);
+    background: rgb(255 255 255 / 0.03);
   }
   .espace-pro-led-tabs {
-    box-shadow:
-      0 0 16px rgba(255, 255, 255, 0.08),
-      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    border: 1px solid rgb(255 255 255 / 0.08);
+    border-radius: 10px;
+    background: rgb(255 255 255 / 0.02);
   }
   .espace-pro-led-tabs [data-state="active"] {
-    box-shadow:
-      0 0 12px rgba(255, 255, 255, 0.2),
-      inset 0 0 12px rgba(255, 255, 255, 0.08);
+    background: rgb(255 255 255 / 0.06);
+    border-color: rgb(255 255 255 / 0.12);
   }
   .espace-pro-led-header {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid rgb(255 255 255 / 0.08);
+    background: rgba(10, 10, 10, 0.95);
+    backdrop-filter: blur(8px);
   }
 
   /* Fond Hero : filtre image/vidéo pour rendu plus agréable */

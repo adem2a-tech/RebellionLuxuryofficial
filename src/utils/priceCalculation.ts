@@ -192,16 +192,24 @@ export function calculateTotalPrice(
   };
 }
 
-/** Trouve un véhicule par nom (Audi, R8, McLaren, 570...) */
+/** Trouve un véhicule par requête texte — fonctionne pour toute la flotte (base + admin + acceptés). */
 export function findVehicleByQuery(query: string): { slug: string; name: string } | null {
-  const q = query.toLowerCase().trim();
+  const q = query.toLowerCase().trim().replace(/\s+/g, " ");
   const vehicles = getAllVehicles();
   for (const v of vehicles) {
     const vn = v.name.toLowerCase();
-    if (vn.includes(q) || v.slug.includes(q.replace(/\s/g, "-"))) return { slug: v.slug, name: v.name };
-    if ((q.includes("audi") || q.includes("r8")) && vn.includes("audi")) return { slug: v.slug, name: v.name };
-    if ((q.includes("mclaren") || q.includes("570")) && vn.includes("mclaren")) return { slug: v.slug, name: v.name };
-    if ((q.includes("maserati") || q.includes("quattroporte")) && vn.includes("maserati")) return { slug: v.slug, name: v.name };
+    const vs = v.slug.toLowerCase();
+    const brand = (v.brand || "").toLowerCase();
+    const model = (v.model || "").toLowerCase();
+    if (!q) continue;
+    if (vn.includes(q) || q.includes(vn)) return { slug: v.slug, name: v.name };
+    if (vs.includes(q.replace(/\s/g, "-")) || q.replace(/\s/g, " ").includes(vs.replace(/-/g, " "))) return { slug: v.slug, name: v.name };
+    if (brand && (q.includes(brand) || vn.includes(q))) return { slug: v.slug, name: v.name };
+    if (model && (q.includes(model) || vn.includes(q))) return { slug: v.slug, name: v.name };
+    const words = q.split(/\s+/).filter(Boolean);
+    const nameWords = vn.split(/\s+/);
+    if (words.every((w) => vn.includes(w) || vs.includes(w.replace(/\s/g, "-")))) return { slug: v.slug, name: v.name };
+    if (nameWords.some((nw) => nw.length >= 2 && q.includes(nw))) return { slug: v.slug, name: v.name };
   }
   return null;
 }

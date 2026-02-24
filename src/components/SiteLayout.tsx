@@ -9,8 +9,6 @@ import AIAssistant from "@/components/AIAssistant";
 import WelcomePopup from "@/components/WelcomePopup";
 import ReidentifyTab from "@/components/ReidentifyTab";
 
-const POPUP_SEEN_KEY = "rebellion_popup_seen";
-
 type SiteLayoutInnerProps = {
   justFinishedTransition: boolean;
 };
@@ -27,9 +25,9 @@ function SiteLayoutInner({ justFinishedTransition }: SiteLayoutInnerProps) {
   useEffect(() => {
     recordVisit(location.pathname || "/");
   }, [location.pathname]);
-  const showWelcomePopup =
-    justFinishedTransition ||
-    (typeof window !== "undefined" && !localStorage.getItem(POPUP_SEEN_KEY));
+
+  // Bannière IA récurrente en bas de page (réapparaît toutes les 1min30)
+  const showWelcomeBanner = true;
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
@@ -59,7 +57,7 @@ function SiteLayoutInner({ justFinishedTransition }: SiteLayoutInnerProps) {
       <ReidentifyTab />
       <WelcomePopup
         key={justFinishedTransition ? "welcome-show" : "welcome-idle"}
-        defaultOpen={showWelcomePopup}
+        defaultOpen={showWelcomeBanner}
         onTryIA={openChat}
       />
     </div>

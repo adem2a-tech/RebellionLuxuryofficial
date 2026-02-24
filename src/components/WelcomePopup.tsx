@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Sparkles, MessageCircle, X } from "lucide-react";
+import { MessageCircle, X } from "lucide-react";
 
-const POPUP_SEEN_KEY = "rebellion_popup_seen";
 const TITLE_ID = "welcome-popup-title";
+const RECURRENCE_MS = 3 * 60 * 1000; // 3 min
 
 type WelcomePopupProps = {
   defaultOpen: boolean;
@@ -12,89 +13,110 @@ type WelcomePopupProps = {
 
 export default function WelcomePopup({ defaultOpen, onTryIA }: WelcomePopupProps) {
   const [open, setOpen] = useState(false);
+  const recurrenceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Afficher au montage après un court délai (si defaultOpen) ou après la récurrence
   useEffect(() => {
     if (!defaultOpen) return;
-    const t = setTimeout(() => setOpen(true), 100);
+    const t = setTimeout(() => setOpen(true), 300);
     return () => clearTimeout(t);
   }, [defaultOpen]);
 
-  const handleOpenChange = (next: boolean) => {
-    if (!next) {
-      try {
-        localStorage.setItem(POPUP_SEEN_KEY, "true");
-      } catch {
-        // ignore
-      }
+  const scheduleRecurrence = () => {
+    recurrenceRef.current = setTimeout(() => setOpen(true), RECURRENCE_MS);
+  };
+
+  const handleClose = () => {
+    if (recurrenceRef.current) {
+      clearTimeout(recurrenceRef.current);
+      recurrenceRef.current = null;
     }
-    setOpen(next);
+    setOpen(false);
+    scheduleRecurrence();
   };
 
   const handleTryIA = () => {
+    if (recurrenceRef.current) {
+      clearTimeout(recurrenceRef.current);
+      recurrenceRef.current = null;
+    }
+    setOpen(false);
     onTryIA?.();
-    handleOpenChange(false);
+    scheduleRecurrence();
   };
 
-  if (!open) return null;
+  useEffect(() => {
+    return () => {
+      if (recurrenceRef.current) clearTimeout(recurrenceRef.current);
+    };
+  }, []);
 
   return (
-    <div
-      className="fixed inset-0 z-[100] bg-black/80"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={TITLE_ID}
-      onClick={() => handleOpenChange(false)}
-    >
-      <div
-        className="fixed left-1/2 top-1/2 z-[101] w-full max-w-md -translate-x-1/2 -translate-y-1/2 px-4"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="welcome-popup-led rounded-xl p-6">
-          <div className="flex flex-col gap-4">
-            <div className="flex items-start justify-between gap-4">
-              <h2
-                id={TITLE_ID}
-                className="welcome-popup-title-led flex items-center gap-2 text-xl font-semibold"
-              >
-                <Sparkles className="h-5 w-5 shrink-0" aria-hidden />
-                Venez tester notre IA
-              </h2>
-              <button
-                type="button"
-                onClick={() => handleOpenChange(false)}
-                className="rounded-sm p-1 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                aria-label="Fermer"
-              >
-                <X className="h-4 w-4" />
-              </button>
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ y: 80, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 80, opacity: 0 }}
+          transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="fixed bottom-0 left-0 right-0 z-[100] px-3 pb-3 sm:px-4 sm:pb-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={TITLE_ID}
+        >
+          <div className="mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-3 rounded-3xl border border-white/[0.06] bg-black/90 px-4 py-3 shadow-[0_-2px_16px_rgba(0,0,0,0.3)] backdrop-blur-xl sm:flex-nowrap sm:gap-4 sm:px-5 sm:py-3.5">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              {/* Logo : uniquement le rond (détour), pas de carré */}
+              <div className="logo-round h-10 w-10 shrink-0 overflow-hidden sm:h-11 sm:w-11">
+                <img
+                  src="/rebellion-luxury-logo.png"
+                  alt="Rebellion Luxury"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <div className="min-w-0">
+                <h2
+                  id={TITLE_ID}
+                  className="font-luxury text-[15px] font-semibold tracking-[0.06em] text-white sm:text-base"
+                >
+                  Venez tester notre IA
+                </h2>
+                <p className="font-luxury mt-0.5 text-[13px] font-medium tracking-[0.02em] text-white/80 leading-snug sm:text-sm">
+                  Rebellion IA vous répond sur les véhicules, tarifs et réservations.
+                </p>
+              </div>
             </div>
-            <p className="text-left text-sm text-muted-foreground">
-              Rebellion IA vous répond sur les véhicules, tarifs et réservations.
-            </p>
-            <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:justify-end">
+            <div className="flex w-full shrink-0 items-center justify-end gap-1.5 sm:w-auto">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className="sm:order-first"
-                onClick={() => handleOpenChange(false)}
+                className="font-luxury order-2 border-white/15 bg-transparent text-xs font-medium tracking-[0.08em] text-white/90 hover:bg-white/5 hover:text-white sm:order-1"
+                onClick={handleClose}
               >
                 Fermer
               </Button>
               <Button
                 type="button"
-                variant="hero"
-                size="lg"
-                className="w-full sm:w-auto animate-glow-pulse"
+                size="default"
+                className="font-luxury order-1 rounded-xl bg-white px-3.5 py-2 text-[13px] font-semibold tracking-[0.08em] text-black transition-all hover:bg-white/95 sm:order-2"
                 onClick={handleTryIA}
               >
-                <MessageCircle className="h-5 w-5" />
-                Tester l&apos;IA maintenant
+                <MessageCircle className="mr-1.5 h-3.5 w-3.5" />
+                Tester l&apos;IA
               </Button>
+              <button
+                type="button"
+                onClick={handleClose}
+                className="rounded-lg p-1.5 text-white/50 transition-colors hover:bg-white/5 hover:text-white/80 focus:outline-none focus:ring-2 focus:ring-white/10"
+                aria-label="Fermer"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

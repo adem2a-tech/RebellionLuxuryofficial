@@ -35,7 +35,7 @@ function VehicleCardCarousel({ images, badgeLabel = "Rebellion" }: { images: str
 
   return (
     <div
-      className="relative aspect-[3/2] bg-zinc-900 overflow-hidden shrink-0 w-full select-none z-20 border-2 border-black rounded-t-xl"
+      className="relative aspect-[3/2] bg-zinc-900 overflow-hidden shrink-0 w-full select-none z-20 rounded-t-2xl border border-b-0 border-white/10"
       onClick={(e) => e.stopPropagation()}
       role="region"
       aria-label="Carrousel photos"
@@ -57,8 +57,10 @@ function VehicleCardCarousel({ images, badgeLabel = "Rebellion" }: { images: str
           )}
         </AnimatePresence>
       </div>
-      <div className="absolute top-2 left-2 flex items-center gap-1.5 rounded-md bg-black/70 border border-white/20 px-2 py-1 text-[10px] font-medium text-white/90 uppercase tracking-wider pointer-events-none">
-        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-white/20 text-white text-[8px] font-bold">R</span>
+      {/* Légère ombre en bas pour transition vers le contenu */}
+      <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+      <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-lg bg-black/60 backdrop-blur-sm border border-white/15 px-2.5 py-1.5 text-[10px] font-semibold text-white/95 uppercase tracking-wider pointer-events-none">
+        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-white/25 text-white text-[8px] font-bold">R</span>
         {badgeLabel}
       </div>
       {count > 1 && (
@@ -66,7 +68,7 @@ function VehicleCardCarousel({ images, badgeLabel = "Rebellion" }: { images: str
           <button
             type="button"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); goPrev(); }}
-            className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center z-30 cursor-pointer border-0 touch-manipulation"
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 hover:bg-black/80 hover:border-white/20 text-white flex items-center justify-center z-30 cursor-pointer border touch-manipulation transition-colors"
             aria-label="Image précédente"
           >
             <ChevronLeft className="w-5 h-5 pointer-events-none" />
@@ -74,20 +76,20 @@ function VehicleCardCarousel({ images, badgeLabel = "Rebellion" }: { images: str
           <button
             type="button"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); goNext(); }}
-            className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center z-30 cursor-pointer border-0 touch-manipulation"
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 hover:bg-black/80 hover:border-white/20 text-white flex items-center justify-center z-30 cursor-pointer border touch-manipulation transition-colors"
             aria-label="Image suivante"
           >
             <ChevronRight className="w-5 h-5 pointer-events-none" />
           </button>
-          <div className="absolute bottom-2 left-0 right-0 flex flex-col items-center gap-2 z-30 pointer-events-auto">
+          <div className="absolute bottom-3 left-0 right-0 flex flex-col items-center gap-2 z-30 pointer-events-auto">
             <div className="flex gap-1.5">
               {images.map((_, i) => (
                 <button
                   key={i}
                   type="button"
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIndex(i); }}
-                  className={`w-3 h-3 rounded-full transition-colors cursor-pointer border-0 touch-manipulation flex-shrink-0 ${
-                    i === index % count ? "bg-white" : "bg-white/50"
+                  className={`w-2.5 h-2.5 rounded-full transition-all cursor-pointer border-0 touch-manipulation flex-shrink-0 ${
+                    i === index % count ? "bg-white scale-110" : "bg-white/50 hover:bg-white/70"
                   }`}
                   aria-label={`Image ${i + 1}`}
                 />
@@ -96,7 +98,7 @@ function VehicleCardCarousel({ images, badgeLabel = "Rebellion" }: { images: str
             <button
               type="button"
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); goNext(); }}
-              className="text-[10px] uppercase tracking-wider text-white/90 hover:text-white bg-white/20 hover:bg-white/30 px-2.5 py-1.5 rounded cursor-pointer border-0 touch-manipulation"
+              className="text-[10px] uppercase tracking-wider text-white/90 hover:text-white bg-white/15 hover:bg-white/25 border border-white/10 px-3 py-1.5 rounded-lg cursor-pointer touch-manipulation transition-colors"
               aria-label="Photo suivante"
             >
               Photo suivante
@@ -125,25 +127,26 @@ const VehiclesSection = ({ onAskQuestion, onlyHorsRebellion = false }: VehiclesS
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.8, ease: [0.34, 1.56, 0.64, 1] }}
           style={{ transformStyle: "preserve-3d", perspective: 1200 }}
-          className="text-center mb-16"
+          className="text-center mb-16 lg:mb-20"
         >
           <motion.span
-            className="inline-block px-4 py-2 rounded-full border border-primary/30 bg-primary/10 text-primary text-sm font-medium mb-4"
+            className="inline-block px-4 py-2 rounded-full border border-white/20 bg-white/5 text-primary text-sm font-medium tracking-wide mb-5 shadow-[0_0_20px_rgba(255,255,255,0.05)]"
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            whileHover={{ scale: 1.05, y: -2 }}
+            whileHover={{ scale: 1.03, y: -1 }}
           >
             {onlyHorsRebellion ? "Catalogue des particuliers" : "Notre Flotte"}
           </motion.span>
-          <p className="font-display text-lg md:text-xl text-primary font-semibold mb-2">
+          <p className="font-display text-base md:text-lg text-muted-foreground font-medium mb-3 tracking-wide uppercase">
             {onlyHorsRebellion ? "Loués par des particuliers via notre plateforme" : "L'excellence au volant — L'émotion en Suisse romande"}
           </p>
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
-            {onlyHorsRebellion ? <>Véhicules des <span className="text-gradient-orange">particuliers</span></> : <>Nos <span className="text-gradient-orange">véhicules</span> d'exception</>}
+          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-6 tracking-tight text-foreground">
+            {onlyHorsRebellion ? <>Véhicules des <span className="text-gradient-orange">particuliers</span></> : <>Nos <span className="text-gradient-orange">véhicules</span> d&apos;exception</>}
           </h2>
-          <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto mb-4 leading-relaxed">
+          <div className="w-16 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent mx-auto mb-6" />
+          <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto mb-6 leading-relaxed">
             {onlyHorsRebellion
               ? "Ces véhicules sont proposés par des propriétaires qui les louent via Rebellion Luxury. Même exigence de qualité et de service."
               : "Chaque véhicule est méticuleusement entretenu pour vous offrir une expérience de conduite inoubliable. Supercars de prestige, conditions transparentes et un service sur mesure pour vos envies de liberté."}
@@ -153,7 +156,7 @@ const VehiclesSection = ({ onAskQuestion, onlyHorsRebellion = false }: VehiclesS
             href="https://www.tiktok.com/@rebellion.luxury"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-primary font-medium hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg"
+            className="inline-flex items-center gap-2 text-primary/90 font-medium hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg transition-colors"
             aria-label="Suivre Rebellion Luxury sur TikTok"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -205,45 +208,38 @@ const VehiclesSection = ({ onAskQuestion, onlyHorsRebellion = false }: VehiclesS
                         transition={{ duration: 0.5, ease: [0.34, 1.56, 0.64, 1] }}
                         className="w-full relative"
                       >
-                        <div className="relative h-full block">
-                          <div className="relative rounded-xl overflow-hidden h-full min-h-[360px] flex flex-col border-2 border-black bg-black shadow-[0_8px_30px_-8px_rgba(0,0,0,0.5)] transition-shadow duration-300 hover:shadow-[0_16px_48px_-12px_rgba(0,0,0,0.6)]">
+                        <div className="relative h-full block group">
+                          <div className="relative rounded-2xl overflow-hidden h-full min-h-[360px] flex flex-col border border-white/15 bg-black/90 shadow-[0_4px_24px_rgba(0,0,0,0.4),0_0_1px_rgba(255,255,255,0.06)_inset] transition-all duration-300 hover:border-white/25 hover:shadow-[0_12px_40px_rgba(0,0,0,0.5),0_0_1px_rgba(255,255,255,0.1)_inset]">
                             <VehicleCardCarousel images={mediaList} badgeLabel={onlyHorsRebellion ? "Particulier" : "Rebellion"} />
                             {onlyHorsRebellion && (
-                              <p className="px-4 py-2 text-xs text-zinc-500 bg-zinc-900/80 border-t border-zinc-800">
+                              <p className="px-4 py-2 text-xs text-zinc-500 bg-zinc-900/80 border-t border-white/5">
                                 Ce véhicule n&apos;appartient pas à Rebellion Luxury
                               </p>
                             )}
                             {unavailableUntil && (
-                              <div className="absolute top-3 right-3 z-20 px-3 py-1.5 rounded-lg bg-amber-500/90 text-black text-xs font-semibold uppercase">
+                              <div className="absolute top-3 right-3 z-20 px-3 py-1.5 rounded-lg bg-amber-500/95 text-black text-xs font-semibold uppercase shadow-lg">
                                 Indisponible jusqu&apos;au {formatDate(unavailableUntil)}
                               </div>
                             )}
                             <Link
                               to={detailUrl}
-                              className="p-4 flex flex-col gap-1 shrink-0 bg-black cursor-pointer block hover:bg-zinc-900/50 transition-colors rounded-b-xl"
+                              className="p-5 flex flex-col gap-2 shrink-0 bg-gradient-to-b from-black/95 to-black cursor-pointer block hover:from-white/[0.06] hover:to-black/95 transition-colors rounded-b-2xl border-t border-white/10"
                             >
-                              <p className="font-display font-semibold text-base text-white uppercase tracking-tight">
+                              <p className="font-display font-semibold text-base text-white uppercase tracking-tight leading-tight">
                                 {v.name}
-                                {v.specs?.power && ` - ${v.specs.power}`}
+                                {v.specs?.power && ` — ${v.specs.power}`}
                                 {locationLabel && ` (${locationLabel})`}
                               </p>
                               {v.pricePerDay != null && (
-                                <p className="text-sm text-zinc-400">
-                                  A partir de {v.pricePerDay.toLocaleString("fr-CH")} CHF (2 jours)
+                                <p className="text-sm text-muted-foreground font-medium">
+                                  À partir de <span className="text-foreground">{v.pricePerDay.toLocaleString("fr-CH")} CHF</span> <span className="text-muted-foreground/80">/ 2 jours</span>
                                 </p>
                               )}
-                              <div className="pt-3">
-                                <Button
-                                  size="default"
-                                  variant="outline"
-                                  className="w-full gap-2 text-sm font-semibold uppercase border-white text-white hover:bg-white hover:text-black rounded-none transition-colors pointer-events-none"
-                                  asChild
-                                >
-                                  <span>
-                                    Louez {v.name}
-                                    <ArrowRight className="w-4 h-4" />
-                                  </span>
-                                </Button>
+                              <div className="pt-2">
+                                <span className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/5 py-2.5 text-sm font-semibold uppercase tracking-wide text-white transition-colors group-hover:bg-white group-hover:text-black">
+                                  Voir le véhicule
+                                  <ArrowRight className="w-4 h-4" />
+                                </span>
                               </div>
                             </Link>
                           </div>

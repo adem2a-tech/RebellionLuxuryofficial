@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { MapPin, Phone, Mail, Instagram, Facebook } from "lucide-react";
 import { IoLogoWhatsapp } from "react-icons/io5";
+import { COOKIE_BANNER_OPEN_EVENT } from "@/components/CookieConsent";
 import {
   Accordion,
   AccordionContent,
@@ -34,14 +35,14 @@ const Footer = () => {
           >
             <div className="flex items-center gap-3 mb-4">
               <motion.div
-                className="rounded-full overflow-hidden h-9 w-9 lg:h-10 lg:w-10 shrink-0 border border-white/25 ring-1 ring-white/10"
+                className="logo-round overflow-hidden h-10 w-10 lg:h-12 lg:w-12 shrink-0"
                 whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.3 }}
               >
                 <img
                   src="/rebellion-luxury-logo.png"
                   alt="Rebellion Luxury"
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-cover"
                 />
               </motion.div>
               <div className="flex flex-col">
@@ -231,19 +232,27 @@ const Footer = () => {
                 <span className="font-semibold text-foreground">{CREATOR.name}</span> a conçu et développé ce site.
                 {" "}
                 <a
-                  href={CREATOR.whatsappUrl}
+                  href="https://wa.me/33769081072"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 text-[#25d366] hover:underline"
                 >
                   <IoLogoWhatsapp className="w-4 h-4 shrink-0" />
-                  Contacter par WhatsApp
+                  Contacter par WhatsApp : 07 69 08 10 72
                 </a>
               </AccordionContent>
             </AccordionItem>
           </Accordion>
           <p className="text-muted-foreground text-sm text-center mt-6">
             © {new Date().getFullYear()} Rebellion Luxury. Tous droits réservés.
+            {" · "}
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent(COOKIE_BANNER_OPEN_EVENT))}
+              className="hover:text-primary transition-colors underline-offset-2 hover:underline"
+            >
+              Gérer les cookies
+            </button>
             {" · "}
             <Link to="/admin" className="hover:text-primary transition-colors">Admin</Link>
           </p>

@@ -21,8 +21,8 @@ export default function UserAccountDropdown({ className }: UserAccountDropdownPr
 
   if (!user) return null;
 
-  const displayName = "EDUARDO";
-  const initial = displayName.charAt(0);
+  const displayName = (user.firstName || "").trim() || "Compte";
+  const initial = (displayName.charAt(0) || "?").toUpperCase();
 
   return (
     <DropdownMenu>
@@ -100,7 +100,7 @@ export default function UserAccountDropdown({ className }: UserAccountDropdownPr
         </DropdownMenuItem>
         <DropdownMenuSeparator className="bg-white/10" />
         <DropdownMenuItem
-          onClick={resetIdentification}
+          onSelect={() => resetIdentification()}
           className="flex items-center gap-3 cursor-pointer text-amber-400/90 focus:bg-white/10 focus:text-amber-400"
         >
           <LogOut className="w-4 h-4" />
