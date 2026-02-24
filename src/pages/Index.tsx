@@ -31,7 +31,7 @@ const Index = () => {
             </p>
           </motion.div>
 
-          {/* Vidéo 3D — Best seller + valeurs flottantes (prix, caractéristiques) */}
+          {/* Visuel showroom McLaren — Best seller + valeurs flottantes (prix, caractéristiques) */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -41,14 +41,10 @@ const Index = () => {
           >
             <div className="relative rounded-xl sm:rounded-2xl overflow-visible">
               <div className="relative flex items-center justify-center min-h-[260px] sm:min-h-[320px] lg:min-h-[400px] bg-black rounded-xl sm:rounded-2xl overflow-hidden">
-                <video
-                  src="/0221.mp4"
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
+                <img
+                  src="/hero-mclaren.png"
+                  alt="Rebellion Luxury — McLaren 570S en showroom"
                   className="w-full h-full max-h-[70vh] object-contain"
-                  aria-label="Rebellion Luxury — expérience 3D"
                 />
                 {/* Best seller — 3D flottant */}
                 <motion.span

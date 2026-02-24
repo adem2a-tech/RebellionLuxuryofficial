@@ -58,6 +58,7 @@ function SiteLayoutInner({ justFinishedTransition }: SiteLayoutInnerProps) {
       <WelcomePopup
         key={justFinishedTransition ? "welcome-show" : "welcome-idle"}
         defaultOpen={showWelcomeBanner}
+        isIAOpen={isOpen}
         onTryIA={openChat}
       />
     </div>

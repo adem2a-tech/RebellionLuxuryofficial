@@ -4,26 +4,44 @@ import { Button } from "@/components/ui/button";
 import { MessageCircle, X } from "lucide-react";
 
 const TITLE_ID = "welcome-popup-title";
-const RECURRENCE_MS = 3 * 60 * 1000; // 3 min
+const RECURRENCE_MS = 90 * 1000; // 1 min 30
 
 type WelcomePopupProps = {
   defaultOpen: boolean;
+  isIAOpen?: boolean;
   onTryIA?: () => void;
 };
 
-export default function WelcomePopup({ defaultOpen, onTryIA }: WelcomePopupProps) {
+export default function WelcomePopup({ defaultOpen, isIAOpen = false, onTryIA }: WelcomePopupProps) {
   const [open, setOpen] = useState(false);
   const recurrenceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isIAOpenRef = useRef(isIAOpen);
+  isIAOpenRef.current = isIAOpen;
 
-  // Afficher au montage après un court délai (si defaultOpen) ou après la récurrence
+  const maybeShow = () => {
+    if (!isIAOpenRef.current) setOpen(true);
+  };
+
+  // Afficher au montage après un court délai uniquement si l'IA n'est pas ouverte
   useEffect(() => {
     if (!defaultOpen) return;
-    const t = setTimeout(() => setOpen(true), 300);
+    const t = setTimeout(maybeShow, 300);
     return () => clearTimeout(t);
   }, [defaultOpen]);
 
   const scheduleRecurrence = () => {
-    recurrenceRef.current = setTimeout(() => setOpen(true), RECURRENCE_MS);
+    if (recurrenceRef.current) {
+      clearTimeout(recurrenceRef.current);
+      recurrenceRef.current = null;
+    }
+    recurrenceRef.current = setTimeout(() => {
+      recurrenceRef.current = null;
+      if (isIAOpenRef.current) {
+        scheduleRecurrence();
+      } else {
+        setOpen(true);
+      }
+    }, RECURRENCE_MS);
   };
 
   const handleClose = () => {
@@ -44,6 +62,11 @@ export default function WelcomePopup({ defaultOpen, onTryIA }: WelcomePopupProps
     onTryIA?.();
     scheduleRecurrence();
   };
+
+  // Ne pas afficher le popup quand l'utilisateur est déjà avec l'IA (évite de gêner)
+  useEffect(() => {
+    if (isIAOpen && open) setOpen(false);
+  }, [isIAOpen]);
 
   useEffect(() => {
     return () => {
