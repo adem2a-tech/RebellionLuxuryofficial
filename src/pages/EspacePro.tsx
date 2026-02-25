@@ -1042,39 +1042,41 @@ function EspaceProContent() {
     <div className="min-h-screen bg-black espace-pro-led relative">
       {/* Header LED */}
       <header className="sticky top-0 z-20 border-b border-white/10 espace-pro-led-header bg-black/90 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between max-w-5xl flex-wrap gap-2">
-          <Button variant="ghost" size="sm" asChild className="text-white/60 hover:text-white transition-colors">
-            <Link to="/">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Retour
-            </Link>
-          </Button>
-          <h1 className="font-bold uppercase tracking-[0.15em] text-white espace-pro-led-title text-lg">
-            Espace pro
-          </h1>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const fleet = getAllVehicles();
-                const names = fleet.map((v) => v.name).join(", ") || "—";
-                toast.success("L'IA est à jour", {
-                  description: fleet.length
-                    ? `Rebellion IA a accès à ${fleet.length} véhicule${fleet.length > 1 ? "s" : ""} : ${names}. Elle peut répondre sur les tarifs, disponibilités et fiches.`
-                    : "Aucun véhicule en base. Ajoutez des véhicules dans « Mes véhicules » ou « Flotte de base ».",
-                  duration: 5000,
-                });
-              }}
-              className="border-white/20 text-white/90 hover:bg-white/10 shrink-0"
-            >
-              <Sparkles className="w-4 h-4 mr-1.5" />
-              Mettre à jour l&apos;IA
+        <div className="container mx-auto px-4 py-4 max-w-5xl">
+          <div className="flex items-center justify-between gap-2 min-h-[2.5rem]">
+            <Button variant="ghost" size="sm" asChild className="text-white/60 hover:text-white transition-colors shrink-0">
+              <Link to="/">
+                <ArrowLeft className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Retour</span>
+              </Link>
             </Button>
-            <Button variant="ghost" size="sm" onClick={logout} className="text-white/60 hover:text-white transition-colors">
-              <LogOut className="w-4 h-4 mr-2" />
-              Déconnexion
-            </Button>
+            <h1 className="font-bold uppercase tracking-[0.15em] text-white espace-pro-led-title text-lg absolute left-1/2 -translate-x-1/2 pointer-events-none">
+              Espace pro
+            </h1>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const fleet = getAllVehicles();
+                  const names = fleet.map((v) => v.name).join(", ") || "—";
+                  toast.success("L'IA est à jour", {
+                    description: fleet.length
+                      ? `Rebellion IA a accès à ${fleet.length} véhicule${fleet.length > 1 ? "s" : ""} : ${names}. Elle peut répondre sur les tarifs, disponibilités et fiches.`
+                      : "Aucun véhicule en base. Ajoutez des véhicules dans « Mes véhicules » ou « Flotte de base ».",
+                    duration: 5000,
+                  });
+                }}
+                className="border-white/20 text-white/90 hover:bg-white/10 text-xs sm:text-sm px-2 sm:px-3"
+              >
+                <Sparkles className="w-4 h-4 sm:mr-1.5" />
+                <span className="hidden sm:inline">Mettre à jour l&apos;IA</span>
+              </Button>
+              <Button variant="ghost" size="sm" onClick={logout} className="text-white/60 hover:text-white transition-colors text-xs sm:text-sm px-2 sm:px-3">
+                <LogOut className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Déconnexion</span>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
