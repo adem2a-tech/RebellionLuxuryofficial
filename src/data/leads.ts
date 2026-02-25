@@ -19,6 +19,7 @@ export interface Lead {
 
 function loadLeads(): Lead[] {
   try {
+    if (typeof localStorage === "undefined") return [];
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
@@ -29,7 +30,12 @@ function loadLeads(): Lead[] {
 }
 
 function saveLeads(leads: Lead[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(leads));
+  try {
+    if (typeof localStorage === "undefined") return;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(leads));
+  } catch {
+    // Safari mode privé / stockage désactivé
+  }
 }
 
 export function addLead(data: Omit<Lead, "id" | "createdAt" | "status">): Lead {

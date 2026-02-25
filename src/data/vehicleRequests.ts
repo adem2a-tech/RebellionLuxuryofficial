@@ -42,6 +42,7 @@ export interface VehicleRequest {
 
 function loadRequests(): VehicleRequest[] {
   try {
+    if (typeof localStorage === "undefined") return [];
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
@@ -52,7 +53,12 @@ function loadRequests(): VehicleRequest[] {
 }
 
 function saveRequests(requests: VehicleRequest[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(requests));
+  try {
+    if (typeof localStorage === "undefined") return;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(requests));
+  } catch {
+    // Safari mode privé / stockage désactivé
+  }
 }
 
 export function addRequest(data: Omit<VehicleRequest, "id" | "status" | "submittedAt">): VehicleRequest | null {

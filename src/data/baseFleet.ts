@@ -28,6 +28,7 @@ export interface BaseFleetInput {
 
 function loadBaseFleet(): VehicleData[] {
   try {
+    if (typeof localStorage === "undefined") return [];
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
@@ -38,7 +39,12 @@ function loadBaseFleet(): VehicleData[] {
 }
 
 function saveBaseFleet(vehicles: VehicleData[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(vehicles));
+  try {
+    if (typeof localStorage === "undefined") return;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(vehicles));
+  } catch {
+    // Safari mode privé / stockage désactivé
+  }
 }
 
 /** Retourne la flotte de base (localStorage ou défaut). Les nouveaux véhicules par défaut (ex. Porsche) sont fusionnés pour apparaître dans le catalogue. */

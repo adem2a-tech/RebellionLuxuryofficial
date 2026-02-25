@@ -16,6 +16,7 @@ export function setCachedServerAdminVehicles(vehicles: VehicleData[] | null): vo
 
 function loadFromStorage(): VehicleData[] {
   try {
+    if (typeof localStorage === "undefined") return [];
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
@@ -58,7 +59,12 @@ function slugify(name: string): string {
 }
 
 function saveAdminVehicles(vehicles: VehicleData[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(vehicles));
+  try {
+    if (typeof localStorage === "undefined") return;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(vehicles));
+  } catch {
+    // Safari mode privé / stockage désactivé
+  }
 }
 
 /** Charge la flotte admin depuis le serveur (pour sync IA / catalogue). À appeler au démarrage de l’app. */

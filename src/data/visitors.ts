@@ -16,6 +16,7 @@ export interface VisitorEntry {
 
 function loadVisitors(): VisitorEntry[] {
   try {
+    if (typeof localStorage === "undefined") return [];
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
@@ -26,7 +27,12 @@ function loadVisitors(): VisitorEntry[] {
 }
 
 function saveVisitors(visitors: VisitorEntry[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(visitors));
+  try {
+    if (typeof localStorage === "undefined") return;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(visitors));
+  } catch {
+    // Safari mode privé / stockage désactivé
+  }
 }
 
 export function addVisitor(data: {

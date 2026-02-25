@@ -2,7 +2,7 @@ import { createContext, useContext, useCallback, useState, useEffect, type React
 
 const STORAGE_KEY = "rebellion_pro_logged_in";
 const COOKIE_NAME = "rebellion_pro_logged_in";
-const COOKIE_MAX_AGE = 730 * 24 * 60 * 60; // 2 ans — persistance tous navigateurs
+const COOKIE_MAX_AGE = 730 * 24 * 60 * 60; // 2 ans — persistance tous navigateurs (Safari compatible)
 const PRO_CODES = ["huracandidier", "rebellion"];
 
 function setProCookie(loggedIn: boolean) {
@@ -10,9 +10,10 @@ function setProCookie(loggedIn: boolean) {
   try {
     const value = loggedIn ? "true" : "";
     const maxAge = loggedIn ? COOKIE_MAX_AGE : 0;
-    document.cookie = `${COOKIE_NAME}=${value}; path=/; max-age=${maxAge}; SameSite=Lax${typeof window !== "undefined" && window.location?.protocol === "https:" ? "; Secure" : ""}`;
+    const secure = typeof window !== "undefined" && window.location?.protocol === "https:";
+    document.cookie = `${COOKIE_NAME}=${value}; path=/; max-age=${maxAge}; SameSite=Lax${secure ? "; Secure" : ""}`;
   } catch {
-    // ignore
+    // ignore (Safari ITP, etc.)
   }
 }
 
@@ -25,17 +26,22 @@ function readProCookie(): boolean {
   }
 }
 
+/** Lecture sécurisée pour Safari (localStorage peut être indisponible ou lancer en mode privé). */
 function readStoredLogin(): boolean {
   if (typeof window === "undefined") return false;
+  const fromCookie = readProCookie();
   try {
     const fromStorage = localStorage.getItem(STORAGE_KEY) === "true";
-    const fromCookie = readProCookie();
     if (fromCookie && !fromStorage) {
-      localStorage.setItem(STORAGE_KEY, "true");
+      try {
+        localStorage.setItem(STORAGE_KEY, "true");
+      } catch {
+        // Safari: stockage désactivé, on s'appuie sur le cookie
+      }
     }
     return fromStorage || fromCookie;
   } catch {
-    return readProCookie();
+    return fromCookie;
   }
 }
 
@@ -50,34 +56,39 @@ const ProAuthContext = createContext<ProAuthContextValue | null>(null);
 export function ProAuthProvider({ children }: { children: ReactNode }) {
   const [isProLoggedIn, setIsProLoggedIn] = useState(() => readStoredLogin());
 
+  // Réhydratation Safari / iOS : le stockage peut être retardé ou bloqué au premier rendu
   useEffect(() => {
     const resync = () => {
-      if (readStoredLogin()) setIsProLoggedIn(true);
+      const loggedIn = readStoredLogin();
+      setIsProLoggedIn(loggedIn);
     };
-    const t = setTimeout(resync, 150);
+    const t1 = setTimeout(resync, 100);
+    const t2 = setTimeout(resync, 400);
     const onVisibility = () => {
       if (document.visibilityState === "visible") resync();
     };
+    const onFocus = () => resync();
     document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("focus", onFocus);
     return () => {
-      clearTimeout(t);
+      clearTimeout(t1);
+      clearTimeout(t2);
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("focus", onFocus);
     };
   }, []);
 
   const login = useCallback((code: string): boolean => {
     const trimmed = (code || "").trim().toLowerCase();
     if (PRO_CODES.includes(trimmed)) {
+      setProCookie(true);
       try {
         localStorage.setItem(STORAGE_KEY, "true");
-        setProCookie(true);
-        setIsProLoggedIn(true);
-        return true;
       } catch {
-        setProCookie(true);
-        setIsProLoggedIn(true);
-        return true;
+        // Safari mode privé : on garde uniquement le cookie
       }
+      setIsProLoggedIn(true);
+      return true;
     }
     return false;
   }, []);
@@ -85,8 +96,10 @@ export function ProAuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     try {
       localStorage.removeItem(STORAGE_KEY);
-      setProCookie(false);
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
+    setProCookie(false);
     setIsProLoggedIn(false);
   }, []);
 

@@ -12,8 +12,13 @@ export default function CookieConsent() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const consent = localStorage.getItem(COOKIE_CONSENT_KEY);
-    if (!consent) {
+    try {
+      const consent = typeof localStorage !== "undefined" ? localStorage.getItem(COOKIE_CONSENT_KEY) : null;
+      if (!consent) {
+        setIsVisible(true);
+        return;
+      }
+    } catch {
       setIsVisible(true);
       return;
     }
@@ -22,12 +27,21 @@ export default function CookieConsent() {
     return () => window.removeEventListener(COOKIE_BANNER_OPEN_EVENT, open);
   }, []);
 
+  const cookieOpts = () => {
+    const secure = typeof window !== "undefined" && window.location?.protocol === "https:";
+    return `path=/; max-age=31536000; SameSite=Lax${secure ? "; Secure" : ""}`;
+  };
+
   const handleAccept = () => {
-    localStorage.setItem(COOKIE_CONSENT_KEY, "accepted");
     try {
-      document.cookie = `rebellion_consent=accepted; path=/; max-age=31536000; SameSite=Lax`;
+      localStorage.setItem(COOKIE_CONSENT_KEY, "accepted");
+    } catch {
+      // Safari mode privé
+    }
+    try {
+      document.cookie = `rebellion_consent=accepted; ${cookieOpts()}`;
       if (!document.cookie.includes("rebellion_visit=")) {
-        document.cookie = `rebellion_visit=${Date.now()}; path=/; max-age=31536000; SameSite=Lax`;
+        document.cookie = `rebellion_visit=${Date.now()}; ${cookieOpts()}`;
       }
     } catch {
       // ignore
@@ -36,9 +50,13 @@ export default function CookieConsent() {
   };
 
   const handleDecline = () => {
-    localStorage.setItem(COOKIE_CONSENT_KEY, "declined");
     try {
-      document.cookie = `rebellion_consent=declined; path=/; max-age=31536000; SameSite=Lax`;
+      localStorage.setItem(COOKIE_CONSENT_KEY, "declined");
+    } catch {
+      // Safari mode privé
+    }
+    try {
+      document.cookie = `rebellion_consent=declined; ${cookieOpts()}`;
     } catch {
       // ignore
     }

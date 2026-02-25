@@ -162,10 +162,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
     try {
       const existing = document.cookie.includes("rebellion_visit=");
       if (!existing) {
-        document.cookie = `rebellion_visit=${Date.now()}; path=/; max-age=31536000; SameSite=Lax`;
+        const secure = typeof window !== "undefined" && window.location?.protocol === "https:";
+        document.cookie = `rebellion_visit=${Date.now()}; path=/; max-age=31536000; SameSite=Lax${secure ? "; Secure" : ""}`;
       }
     } catch {
-      // ignore
+      // ignore (Safari ITP)
     }
     restoreIfFound();
     setHydrated(true);
