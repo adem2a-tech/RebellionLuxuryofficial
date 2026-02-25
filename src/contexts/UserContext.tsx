@@ -136,6 +136,7 @@ function loadUserFromStorage(): UserData | null {
   }
 }
 
+export function UserProvider({ children }: { children: ReactNode }) {
   const initialUser = useRef<UserData | null>(null);
   if (initialUser.current === null && typeof window !== "undefined") {
     initialUser.current = loadUserFromStorage();
