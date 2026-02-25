@@ -13,7 +13,7 @@ import { useProAuth } from "@/contexts/ProAuthContext";
 import { getAllRequests, getRequestsByStatus, updateRequestStatus, acceptRequestWithPricing, updateRequestSpecs, updateRequestPricing, deleteRequest } from "@/data/vehicleRequests";
 import type { VehicleRequest } from "@/data/vehicleRequests";
 import { getPendingLeads, getAllLeads, markLeadContacted } from "@/data/leads";
-import { addAdminVehicle, getAdminVehicles, removeAdminVehicle, updateAdminVehicle, syncAdminVehiclesToServer } from "@/data/adminVehicles";
+import { addAdminVehicle, getAdminVehicles, removeAdminVehicle, updateAdminVehicle, syncAdminVehiclesToServer, setCachedServerAdminVehicles } from "@/data/adminVehicles";
 import { getBaseFleet, updateBaseVehicle } from "@/data/baseFleet";
 import { getAllVehicles } from "@/data/vehicles";
 import { toast } from "sonner";
@@ -500,7 +500,7 @@ function MesVehiculesSection() {
     const PLACEHOLDER_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect fill='%23333' width='400' height='300'/%3E%3Ctext fill='%23888' font-family='sans-serif' font-size='18' x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle'%3EPhoto à ajouter%3C/text%3E%3C/svg%3E";
     const imagesList = images.length > 0 ? images.slice(0, 10) : [PLACEHOLDER_IMG];
     if (editingSlug) {
-      updateAdminVehicle(editingSlug, {
+      const updated = updateAdminVehicle(editingSlug, {
         brand: submittedBrand,
         model: submittedModel,
         year: submittedYear,
@@ -516,8 +516,15 @@ function MesVehiculesSection() {
         availabilityUrl: submittedAvailabilityUrl || undefined,
         extraKmPriceChf: submittedExtraKm,
       });
+      if (updated) {
+        setAdminVehicles((prev) => {
+          const next = prev.map((v) => (v.slug === editingSlug ? updated : v));
+          setCachedServerAdminVehicles(next);
+          return next;
+        });
+      }
     } else {
-      addAdminVehicle({
+      const newVehicle = addAdminVehicle({
         brand: submittedBrand,
         model: submittedModel,
         year: submittedYear,
@@ -532,17 +539,25 @@ function MesVehiculesSection() {
         pricing: tiers,
         availabilityUrl: submittedAvailabilityUrl || undefined,
         extraKmPriceChf: submittedExtraKm,
+      });
+      setAdminVehicles((prev) => {
+        const next = [...prev, newVehicle];
+        setCachedServerAdminVehicles(next);
+        return next;
       });
     }
     resetForm();
-    refreshVehicles();
     syncAdminVehiclesToServer();
     toast.success(editingSlug ? "Véhicule mis à jour." : "Véhicule ajouté.");
   };
 
   const handleRemove = (slug: string) => {
     removeAdminVehicle(slug);
-    refreshVehicles();
+    setAdminVehicles((prev) => {
+      const next = prev.filter((v) => v.slug !== slug);
+      setCachedServerAdminVehicles(next);
+      return next;
+    });
     syncAdminVehiclesToServer();
     if (editingSlug === slug) setEditingSlug(null);
   };
