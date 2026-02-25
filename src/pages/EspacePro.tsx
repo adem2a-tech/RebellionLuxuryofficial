@@ -10,7 +10,7 @@ import { ArrowLeft, LogOut, Lock, FileText, Users, Mail, Check, X, Car, ImagePlu
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useProAuth } from "@/contexts/ProAuthContext";
-import { getAllVisitors, clearVisitors } from "@/data/visitors";
+import { getVisitorsFromServer } from "@/data/visitors";
 import type { VisitorEntry } from "@/data/visitors";
 import { getAllRequests, getRequestsByStatus, updateRequestStatus, acceptRequestWithPricing, updateRequestSpecs, updateRequestPricing, deleteRequest } from "@/data/vehicleRequests";
 import type { VehicleRequest } from "@/data/vehicleRequests";
@@ -297,7 +297,7 @@ function FlotteBaseSection() {
                 <div className="flex gap-2">
                   {videos[0]?.startsWith("data:") ? (
                     <div className="flex-1 flex items-center gap-2 rounded-lg bg-black/50 border border-white/20 px-3 py-2.5 text-sm text-white/90">
-                      <Video className="w-4 h-4 text-amber-400/80" /> Vidéo importée
+                      <Video className="w-4 h-4 text-white/80" /> Vidéo importée
                       <Button type="button" variant="ghost" size="sm" className="ml-auto text-white/60 hover:text-white" onClick={() => setVideos((p) => ["", p[1]])}><X className="w-4 h-4" /></Button>
                     </div>
                   ) : (
@@ -314,7 +314,7 @@ function FlotteBaseSection() {
                 <div className="flex gap-2">
                   {videos[1]?.startsWith("data:") ? (
                     <div className="flex-1 flex items-center gap-2 rounded-lg bg-black/50 border border-white/20 px-3 py-2.5 text-sm text-white/90">
-                      <Video className="w-4 h-4 text-amber-400/80" /> Vidéo importée
+                      <Video className="w-4 h-4 text-white/80" /> Vidéo importée
                       <Button type="button" variant="ghost" size="sm" className="ml-auto text-white/60 hover:text-white" onClick={() => setVideos((p) => [p[0], ""])}><X className="w-4 h-4" /></Button>
                     </div>
                   ) : (
@@ -631,7 +631,7 @@ function MesVehiculesSection() {
                 value={caution}
                 onChange={(e) => setCaution(e.target.value)}
                 placeholder="Ex. 3'000 CHF"
-                className="w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition-colors"
+                className="w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-colors"
               />
             </div>
             <div className="space-y-2">
@@ -641,7 +641,7 @@ function MesVehiculesSection() {
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="Ex. Suisse romande"
-                className="w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition-colors"
+                className="w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-colors"
               />
             </div>
             <div className="space-y-2 md:col-span-2 lg:col-span-3">
@@ -649,7 +649,7 @@ function MesVehiculesSection() {
               <div className="flex gap-2">
                 {videos[0]?.startsWith("data:") ? (
                   <div className="flex-1 flex items-center gap-2 rounded-lg bg-black/50 border border-white/20 px-3 py-2.5 text-sm text-white/90">
-                    <Video className="w-4 h-4 text-amber-400/80" /> Vidéo importée
+                    <Video className="w-4 h-4 text-white/80" /> Vidéo importée
                     <Button type="button" variant="ghost" size="sm" className="ml-auto text-white/60 hover:text-white" onClick={() => setVideos((p) => ["", p[1]])}><X className="w-4 h-4" /></Button>
                   </div>
                 ) : (
@@ -658,7 +658,7 @@ function MesVehiculesSection() {
                     value={videos[0]}
                     onChange={(e) => setVideos((p) => [e.target.value, p[1]])}
                     placeholder="URL ou choisir un fichier (max 20 Mo)"
-                    className="flex-1 w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition-colors"
+                    className="flex-1 w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-colors"
                   />
                 )}
                 <Button type="button" variant="outline" size="sm" className="shrink-0 border-white/20 text-white/80 hover:bg-white/10" onClick={() => video1FileRef.current?.click()}>
@@ -672,7 +672,7 @@ function MesVehiculesSection() {
               <div className="flex gap-2">
                 {videos[1]?.startsWith("data:") ? (
                   <div className="flex-1 flex items-center gap-2 rounded-lg bg-black/50 border border-white/20 px-3 py-2.5 text-sm text-white/90">
-                    <Video className="w-4 h-4 text-amber-400/80" /> Vidéo importée
+                    <Video className="w-4 h-4 text-white/80" /> Vidéo importée
                     <Button type="button" variant="ghost" size="sm" className="ml-auto text-white/60 hover:text-white" onClick={() => setVideos((p) => [p[0], ""])}><X className="w-4 h-4" /></Button>
                   </div>
                 ) : (
@@ -681,7 +681,7 @@ function MesVehiculesSection() {
                     value={videos[1]}
                     onChange={(e) => setVideos((p) => [p[0], e.target.value])}
                     placeholder="URL ou choisir un fichier"
-                    className="flex-1 w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition-colors"
+                    className="flex-1 w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-colors"
                   />
                 )}
                 <Button type="button" variant="outline" size="sm" className="shrink-0 border-white/20 text-white/80 hover:bg-white/10" onClick={() => video2FileRef.current?.click()}>
@@ -698,7 +698,7 @@ function MesVehiculesSection() {
                 value={availabilityUrl}
                 onChange={(e) => setAvailabilityUrl(e.target.value)}
                 placeholder="Ex. https://www.boboloc.com/rebellionluxury-7245/.../carDetails"
-                className="w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition-colors"
+                className="w-full px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-colors"
               />
               <p className="text-xs text-white/50">Collez le lien de la fiche véhicule sur Boboloc pour afficher les disponibilités en temps réel sur le site.</p>
             </div>
@@ -713,8 +713,8 @@ function MesVehiculesSection() {
                   <img src={src} alt="" className="w-20 h-20 object-cover rounded" />
                   <span className="absolute bottom-0.5 left-0.5 text-[10px] font-medium text-white bg-black/60 px-1 rounded">{i + 1}</span>
                   <div className="absolute -top-1 right-6 flex flex-col gap-0.5">
-                    <button type="button" onClick={() => moveImage(i, -1)} disabled={i === 0} className="w-5 h-5 rounded bg-amber-500/90 text-black flex items-center justify-center hover:bg-amber-400 disabled:opacity-30 disabled:pointer-events-none"><ChevronUp className="w-3 h-3" /></button>
-                    <button type="button" onClick={() => moveImage(i, 1)} disabled={i === images.length - 1} className="w-5 h-5 rounded bg-amber-500/90 text-black flex items-center justify-center hover:bg-amber-400 disabled:opacity-30 disabled:pointer-events-none"><ChevronDown className="w-3 h-3" /></button>
+                    <button type="button" onClick={() => moveImage(i, -1)} disabled={i === 0} className="w-5 h-5 rounded bg-white/20 text-white flex items-center justify-center hover:bg-white/30 disabled:opacity-30 disabled:pointer-events-none"><ChevronUp className="w-3 h-3" /></button>
+                    <button type="button" onClick={() => moveImage(i, 1)} disabled={i === images.length - 1} className="w-5 h-5 rounded bg-white/20 text-white flex items-center justify-center hover:bg-white/30 disabled:opacity-30 disabled:pointer-events-none"><ChevronDown className="w-3 h-3" /></button>
                   </div>
                   <button type="button" onClick={() => setImages((p) => p.filter((_, j) => j !== i))} className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-white text-xs flex items-center justify-center">
                     <X className="w-3 h-3" />
@@ -725,7 +725,7 @@ function MesVehiculesSection() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-20 h-20 rounded-lg border border-dashed border-white/30 flex items-center justify-center text-white/40 hover:border-amber-500/50 hover:text-amber-400/80 transition-colors"
+                  className="w-20 h-20 rounded-lg border border-dashed border-white/30 flex items-center justify-center text-white/40 hover:border-white/40 hover:text-white/80 transition-colors"
                 >
                   <ImagePlus className="w-6 h-6" />
                 </button>
@@ -746,7 +746,7 @@ function MesVehiculesSection() {
                     value={(pricing[i]?.price ?? "") === "Sur demande" ? "" : (pricing[i]?.price ?? "").replace(/\s*CHF\s*/gi, "").replace(/'/g, "")}
                     onChange={(e) => updatePricing(i, e.target.value)}
                     placeholder="Ex. 500"
-                    className="px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition-colors"
+                    className="px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-colors"
                   />
                 </div>
               ))}
@@ -765,14 +765,14 @@ function MesVehiculesSection() {
                 value={extraKmPriceChf}
                 onChange={(e) => setExtraKmPriceChf(e.target.value.replace(/[^0-9.,]/g, ""))}
                 placeholder="Ex. 5 ou 6.5"
-                className="w-full max-w-[7rem] px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition-colors"
+                className="w-full max-w-[7rem] px-3 py-2.5 rounded-lg bg-black/50 border border-white/20 text-white placeholder:text-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-colors"
               />
               <span className="text-sm text-white/60">CHF/km</span>
             </div>
           </div>
 
           <div className="flex gap-3">
-            <Button type="submit" className="bg-amber-500 hover:bg-amber-400 text-black font-semibold uppercase tracking-wider rounded-lg py-6 transition-colors">
+            <Button type="submit" className="bg-white hover:bg-white/90 text-black font-semibold uppercase tracking-wider rounded-lg py-6 transition-colors">
               {editingSlug ? (
                 <><Pencil className="w-4 h-4 mr-2" /> Enregistrer les modifications</>
               ) : (
@@ -793,13 +793,13 @@ function MesVehiculesSection() {
             <h3 className="text-xs uppercase tracking-wider text-white/60">Véhicules ajoutés</h3>
             <div className="space-y-2">
               {adminVehicles.map((v) => (
-                <div key={v.slug} className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-black/30 hover:border-amber-500/20 transition-colors">
+                <div key={v.slug} className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-black/30 hover:border-white/20 transition-colors">
                   <div>
                     <p className="font-medium text-white">{v.name}</p>
                     <p className="text-xs text-white/50">{v.year} · {v.specs.power}</p>
                   </div>
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => handleEdit(v)} className="border-amber-500/40 text-amber-400 hover:bg-amber-500/10" title="Modifier">
+                    <Button size="sm" variant="outline" onClick={() => handleEdit(v)} className="border-white/40 text-white hover:bg-white/10" title="Modifier">
                       <Pencil className="w-4 h-4" />
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => handleRemove(v.slug)} className="border-red-500/40 text-red-400 hover:bg-red-500/10" title="Supprimer">
@@ -856,16 +856,11 @@ function EspaceProContent() {
     refreshLeads();
   };
 
-  const [visitorsKey, setVisitorsKey] = useState(0);
-  const visitors = getAllVisitors();
+  const [visitors, setVisitors] = useState<VisitorEntry[]>([]);
   useEffect(() => {
-    const HANDOVER_KEY = "rebellion_visitors_handover_v1";
-    if (!localStorage.getItem(HANDOVER_KEY)) {
-      clearVisitors();
-      localStorage.setItem(HANDOVER_KEY, "1");
-      setVisitorsKey((k) => k + 1);
-    }
+    getVisitorsFromServer().then(setVisitors);
   }, []);
+  const refreshVisitors = () => getVisitorsFromServer().then(setVisitors);
   const pendingRequests = requests.filter((r) => r.status === "pending");
   const acceptedRequests = getRequestsByStatus("accepted");
   const rejectedRequests = getRequestsByStatus("rejected");
@@ -900,8 +895,8 @@ function EspaceProContent() {
       setPricing((p) => p.map((t, j) => (j === i ? { ...t, [field]: value } : t)));
     };
     return (
-      <div className="mt-3 p-4 rounded-xl bg-black/50 border border-amber-500/30 space-y-4">
-        <h4 className="text-amber-400 text-sm font-medium">Infos affichées sur la fiche véhicule</h4>
+      <div className="mt-3 p-4 rounded-xl bg-black/50 border border-white/20 space-y-4">
+        <h4 className="text-white text-sm font-medium">Infos affichées sur la fiche véhicule</h4>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
           <div>
             <Label className="text-white/70">Caution</Label>
@@ -943,7 +938,7 @@ function EspaceProContent() {
         <div>
           <div className="flex items-center justify-between mb-2">
             <Label className="text-white/70">Grille tarifaire</Label>
-            <Button type="button" size="sm" variant="outline" onClick={addPricingRow} className="border-amber-500/40 text-amber-400 text-xs">+ Ligne</Button>
+            <Button type="button" size="sm" variant="outline" onClick={addPricingRow} className="border-white/40 text-white text-xs">+ Ligne</Button>
           </div>
           <div className="space-y-2">
             {pricing.map((t, i) => (
@@ -956,7 +951,7 @@ function EspaceProContent() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button size="sm" onClick={() => onSave(specs, pricing)} className="bg-amber-500 hover:bg-amber-400 text-black">Enregistrer</Button>
+          <Button size="sm" onClick={() => onSave(specs, pricing)} className="bg-white hover:bg-white/90 text-black">Enregistrer</Button>
           <Button size="sm" variant="outline" onClick={onCancel} className="border-white/30 text-white/90">Annuler</Button>
         </div>
       </div>
@@ -971,7 +966,7 @@ function EspaceProContent() {
       ? new Date(r.decidedAt).toLocaleDateString("fr-CH", { dateStyle: "medium" })
       : null;
     return (
-      <div className="border border-white/10 rounded-xl p-5 bg-black/30 hover:border-amber-500/20 transition-colors space-y-4">
+      <div className="border border-white/10 rounded-xl p-5 bg-black/30 hover:border-white/20 transition-colors space-y-4">
         {/* Photos */}
         {r.images.length > 0 && (
           <div className="flex flex-wrap gap-2">
@@ -982,13 +977,13 @@ function EspaceProContent() {
         )}
         {/* Contact */}
         <div>
-          <h4 className="text-xs uppercase tracking-wider text-amber-400/80 mb-2">Contact</h4>
+          <h4 className="text-xs uppercase tracking-wider text-white/80 mb-2">Contact</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-sm text-white/90">
             <span>{d.firstName} {d.lastName}</span>
-            <a href={`mailto:${d.email}`} className="text-amber-400/90 hover:underline flex items-center gap-1">
+            <a href={`mailto:${d.email}`} className="text-white/90 hover:underline flex items-center gap-1">
               <Mail className="w-3.5 h-3.5" /> {d.email}
             </a>
-            <a href={`tel:${d.phone.replace(/\s/g, "")}`} className="text-amber-400/90 hover:underline flex items-center gap-1">
+            <a href={`tel:${d.phone.replace(/\s/g, "")}`} className="text-white/90 hover:underline flex items-center gap-1">
               <Phone className="w-3.5 h-3.5" /> {d.phone}
             </a>
             {d.address && (
@@ -1000,13 +995,13 @@ function EspaceProContent() {
         </div>
         {/* Véhicule */}
         <div>
-          <h4 className="text-xs uppercase tracking-wider text-amber-400/80 mb-2">Véhicule</h4>
+          <h4 className="text-xs uppercase tracking-wider text-white/80 mb-2">Véhicule</h4>
           <div className="text-sm text-white/90 space-y-1">
             <p className="font-medium">{v.brand} {v.model} ({v.year}) · {v.power} · {v.transmission}</p>
             {v.description && <p className="text-white/70">{v.description}</p>}
             <p className="text-white/70">Prix/jour: {v.pricePerDay} · {v.location}</p>
             {v.availabilityUrl && (
-              <a href={v.availabilityUrl} target="_blank" rel="noopener noreferrer" className="text-amber-400/90 hover:underline inline-flex items-center gap-1">
+              <a href={v.availabilityUrl} target="_blank" rel="noopener noreferrer" className="text-white/90 hover:underline inline-flex items-center gap-1">
                 <ExternalLink className="w-3.5 h-3.5" /> Voir disponibilités
               </a>
             )}
@@ -1020,7 +1015,7 @@ function EspaceProContent() {
             {r.status === "rejected" && <span className="text-red-400/90">Refusé</span>}
             {decidedLabel && <span>le {decidedLabel}</span>}
             {r.status === "accepted" && (
-              <Button type="button" size="sm" variant="outline" className="ml-auto border-amber-500/40 text-amber-400 hover:bg-amber-500/10" onClick={() => setEditingRequestId(editingRequestId === r.id ? null : r.id)}>
+              <Button type="button" size="sm" variant="outline" className="ml-auto border-white/40 text-white hover:bg-white/10" onClick={() => setEditingRequestId(editingRequestId === r.id ? null : r.id)}>
                 <Pencil className="w-3.5 h-3.5 mr-1" /> Modifier
               </Button>
             )}
@@ -1090,33 +1085,33 @@ function EspaceProContent() {
           <Card className="espace-pro-led-card border border-white/20 bg-black/60 overflow-hidden">
             <CardHeader className="py-4">
               <CardTitle className="text-xs uppercase tracking-wider text-white/60 flex items-center gap-2">
-                <Users className="w-4 h-4 text-amber-400/80" /> Visiteurs
+                <Users className="w-4 h-4 text-white/80" /> Visiteurs
               </CardTitle>
             </CardHeader>
-            <CardContent><p className="text-3xl font-bold text-amber-400 espace-pro-led-title">{visitors.length}</p></CardContent>
+            <CardContent><p className="text-3xl font-bold text-white espace-pro-led-title">{visitors.length}</p></CardContent>
           </Card>
           <Card className="espace-pro-led-card border border-white/20 bg-black/60 overflow-hidden">
             <CardHeader className="py-4">
               <CardTitle className="text-xs uppercase tracking-wider text-white/60 flex items-center gap-2">
-                <FileText className="w-4 h-4 text-amber-400/80" /> Demandes
+                <FileText className="w-4 h-4 text-white/80" /> Demandes
               </CardTitle>
             </CardHeader>
-            <CardContent><p className="text-3xl font-bold text-amber-400 espace-pro-led-title">{pendingRequests.length}</p></CardContent>
+            <CardContent><p className="text-3xl font-bold text-white espace-pro-led-title">{pendingRequests.length}</p></CardContent>
           </Card>
           <Card className="espace-pro-led-card border border-white/20 bg-black/60 overflow-hidden">
             <CardHeader className="py-4">
               <CardTitle className="text-xs uppercase tracking-wider text-white/60 flex items-center gap-2">
-                <Mail className="w-4 h-4 text-amber-400/80" /> Leads
+                <Mail className="w-4 h-4 text-white/80" /> Leads
               </CardTitle>
             </CardHeader>
-            <CardContent><p className="text-3xl font-bold text-amber-400 espace-pro-led-title">{leads.length}</p></CardContent>
+            <CardContent><p className="text-3xl font-bold text-white espace-pro-led-title">{leads.length}</p></CardContent>
           </Card>
         </div>
 
         {/* Qui s'est connecté — visiteurs identifiés (prénom, nom, email, téléphone) */}
         <Card className="espace-pro-led-card border border-white/20 bg-black/60 mb-8 overflow-hidden">
           <CardHeader className="pb-2">
-            <CardTitle className="text-amber-400 espace-pro-led-title text-lg flex items-center gap-2">
+            <CardTitle className="text-white espace-pro-led-title text-lg flex items-center gap-2">
               <Users className="w-5 h-5" />
               Qui s&apos;est connecté ({visitors.length})
             </CardTitle>
@@ -1160,7 +1155,7 @@ function EspaceProContent() {
         {/* Demandes en attente */}
         <Card className="espace-pro-led-card border border-white/20 bg-black/60 mb-8 overflow-hidden">
           <CardHeader className="pb-2">
-            <CardTitle className="text-amber-400 espace-pro-led-title text-lg">Demandes Espace Pro ({pendingRequests.length})</CardTitle>
+            <CardTitle className="text-white espace-pro-led-title text-lg">Demandes Espace Pro ({pendingRequests.length})</CardTitle>
           </CardHeader>
           <CardContent className="p-6 pt-0">
             {pendingRequests.length === 0 ? (
@@ -1179,7 +1174,7 @@ function EspaceProContent() {
         {(acceptedRequests.length > 0 || rejectedRequests.length > 0) && (
           <Card className="espace-pro-led-card border border-white/20 bg-black/60 mb-8 overflow-hidden">
             <CardHeader className="pb-2">
-              <CardTitle className="text-amber-400 espace-pro-led-title text-lg">Historique des demandes</CardTitle>
+              <CardTitle className="text-white espace-pro-led-title text-lg">Historique des demandes</CardTitle>
             </CardHeader>
             <CardContent className="p-6 pt-0 space-y-6">
               {acceptedRequests.length > 0 && (
@@ -1218,7 +1213,7 @@ function EspaceProContent() {
         {/* Leads en attente */}
         <Card className="espace-pro-led-card border border-white/20 bg-black/60 mb-8 overflow-hidden">
           <CardHeader className="pb-2">
-            <CardTitle className="text-amber-400 espace-pro-led-title text-lg">Leads à contacter ({pendingLeads.length})</CardTitle>
+            <CardTitle className="text-white espace-pro-led-title text-lg">Leads à contacter ({pendingLeads.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {pendingLeads.length === 0 ? (
@@ -1226,7 +1221,7 @@ function EspaceProContent() {
             ) : (
               <div className="space-y-4">
                 {pendingLeads.map((l) => (
-                  <div key={l.id} className="border border-white/10 rounded-xl p-4 bg-black/30 hover:border-amber-500/20 transition-colors">
+                  <div key={l.id} className="border border-white/10 rounded-xl p-4 bg-black/30 hover:border-white/20 transition-colors">
                     <p className="font-medium text-white">{l.name}</p>
                     <p className="text-sm text-white/60">{l.email} · {l.phone}</p>
                     <p className="text-sm text-white/70 mt-1">{l.vehicleType}</p>

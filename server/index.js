@@ -20,6 +20,7 @@ const COOKIE_NAME = "rebellion_refresh";
 const DATA_DIR = path.join(__dirname, "data");
 const STORE_FILE = path.join(DATA_DIR, "refresh-tokens.json");
 const ADMIN_VEHICLES_FILE = path.join(DATA_DIR, "admin-vehicles.json");
+const VISITORS_FILE = path.join(DATA_DIR, "visitors.json");
 
 function loadRefreshStore() {
   const map = new Map();
@@ -218,6 +219,53 @@ app.post("/api/admin-vehicles", (req, res) => {
   }
   saveAdminVehiclesFile(vehicles);
   res.json({ ok: true });
+});
+
+// ——— Visiteurs identifiés (Espace pro : qui s'est connecté) ———
+function loadVisitorsFile() {
+  try {
+    if (fs.existsSync(VISITORS_FILE)) {
+      const raw = fs.readFileSync(VISITORS_FILE, "utf8");
+      const data = JSON.parse(raw);
+      return Array.isArray(data) ? data : [];
+    }
+  } catch {
+    // ignore
+  }
+  return [];
+}
+
+function saveVisitorsFile(list) {
+  try {
+    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(VISITORS_FILE, JSON.stringify(list), "utf8");
+  } catch (err) {
+    console.error("Failed to save visitors:", err);
+  }
+}
+
+app.get("/api/visitors", (req, res) => {
+  const list = loadVisitorsFile();
+  res.json(list);
+});
+
+app.post("/api/visitors", (req, res) => {
+  const { firstName, lastName, email, phone } = req.body || {};
+  if (!firstName || !lastName || !email) {
+    return res.status(400).json({ error: "firstName, lastName, email required" });
+  }
+  const list = loadVisitorsFile();
+  const entry = {
+    id: `v-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    firstName: String(firstName).trim(),
+    lastName: String(lastName).trim(),
+    email: String(email).trim(),
+    phone: phone ? String(phone).trim() : undefined,
+    createdAt: new Date().toISOString(),
+  };
+  list.push(entry);
+  saveVisitorsFile(list);
+  res.status(201).json(entry);
 });
 
 app.listen(PORT, () => {

@@ -3,7 +3,7 @@ import { createContext, useContext, useCallback, useState, useEffect, type React
 const STORAGE_KEY = "rebellion_pro_logged_in";
 const COOKIE_NAME = "rebellion_pro_logged_in";
 const COOKIE_MAX_AGE = 730 * 24 * 60 * 60; // 2 ans — persistance tous navigateurs
-const PRO_CODE = "huracandidier";
+const PRO_CODES = ["huracandidier", "rebellion"];
 
 function setProCookie(loggedIn: boolean) {
   if (typeof document === "undefined") return;
@@ -67,7 +67,7 @@ export function ProAuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback((code: string): boolean => {
     const trimmed = (code || "").trim().toLowerCase();
-    if (trimmed === PRO_CODE) {
+    if (PRO_CODES.includes(trimmed)) {
       try {
         localStorage.setItem(STORAGE_KEY, "true");
         setProCookie(true);
