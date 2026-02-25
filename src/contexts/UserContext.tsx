@@ -117,7 +117,11 @@ function loadUserFromStorage(): UserData | null {
     }
     const fromCookie = readUserFromCookie();
     if (fromCookie) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(fromCookie));
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(fromCookie));
+      } catch {
+        // Safari mode privé
+      }
       return fromCookie;
     }
     const fromBackup = readUserFromBackupCookie();

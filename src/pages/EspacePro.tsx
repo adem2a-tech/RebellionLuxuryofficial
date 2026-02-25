@@ -6,12 +6,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, LogOut, Lock, FileText, Users, Mail, Check, X, Car, ImagePlus, Trash2, Phone, MapPin, ExternalLink, Calendar, Pencil, ChevronUp, ChevronDown, Video } from "lucide-react";
+import { ArrowLeft, LogOut, Lock, FileText, Mail, Check, X, Car, ImagePlus, Trash2, Phone, MapPin, ExternalLink, Calendar, Pencil, ChevronUp, ChevronDown, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useProAuth } from "@/contexts/ProAuthContext";
-import { getVisitorsFromServer } from "@/data/visitors";
-import type { VisitorEntry } from "@/data/visitors";
 import { getAllRequests, getRequestsByStatus, updateRequestStatus, acceptRequestWithPricing, updateRequestSpecs, updateRequestPricing, deleteRequest } from "@/data/vehicleRequests";
 import type { VehicleRequest } from "@/data/vehicleRequests";
 import { getPendingLeads, getAllLeads, markLeadContacted } from "@/data/leads";
@@ -856,11 +854,6 @@ function EspaceProContent() {
     refreshLeads();
   };
 
-  const [visitors, setVisitors] = useState<VisitorEntry[]>([]);
-  useEffect(() => {
-    getVisitorsFromServer().then(setVisitors);
-  }, []);
-  const refreshVisitors = () => getVisitorsFromServer().then(setVisitors);
   const pendingRequests = requests.filter((r) => r.status === "pending");
   const acceptedRequests = getRequestsByStatus("accepted");
   const rejectedRequests = getRequestsByStatus("rejected");
@@ -1081,17 +1074,9 @@ function EspaceProContent() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-10 max-w-5xl relative z-10 flex flex-col items-center">
-        {/* Stats — centrées sur mobile */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10 w-full sm:max-w-none max-w-[18rem] mx-auto sm:max-w-none">
-          <Card className="espace-pro-led-card border border-white/20 bg-black/60 overflow-hidden w-full">
-            <CardHeader className="py-4 text-center sm:text-left">
-              <CardTitle className="text-xs uppercase tracking-wider text-white/60 flex items-center justify-center sm:justify-start gap-2">
-                <Users className="w-4 h-4 text-white/80" /> Visiteurs
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-center sm:text-left"><p className="text-3xl font-bold text-white espace-pro-led-title">{visitors.length}</p></CardContent>
-          </Card>
+      <div className="container mx-auto px-4 py-8 sm:py-10 max-w-5xl relative z-10 flex flex-col items-center">
+        {/* Stats — Demandes & Leads */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 w-full sm:max-w-none max-w-[18rem] mx-auto sm:max-w-none">
           <Card className="espace-pro-led-card border border-white/20 bg-black/60 overflow-hidden w-full">
             <CardHeader className="py-4 text-center sm:text-left">
               <CardTitle className="text-xs uppercase tracking-wider text-white/60 flex items-center justify-center sm:justify-start gap-2">
@@ -1110,76 +1095,14 @@ function EspaceProContent() {
           </Card>
         </div>
 
-        {/* Qui s'est connecté — sur mobile: cartes centrées, sur desktop: tableau */}
-        <Card className="espace-pro-led-card border border-white/20 bg-black/60 mb-8 overflow-hidden w-full max-w-5xl">
-          <CardHeader className="pb-2 text-center sm:text-left">
-            <CardTitle className="text-white espace-pro-led-title text-lg flex items-center justify-center sm:justify-start gap-2">
-              <Users className="w-5 h-5" />
-              Qui s&apos;est connecté ({visitors.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6 pt-0">
-            {visitors.length === 0 ? (
-              <p className="text-white/50 text-sm text-center sm:text-left">Aucun visiteur identifié pour le moment.</p>
-            ) : (
-              <>
-                {/* Mobile: cartes empilées centrées */}
-                <div className="sm:hidden space-y-4">
-                  {[...visitors]
-                    .sort((a: VisitorEntry, b: VisitorEntry) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                    .map((v) => (
-                      <div key={v.id} className="rounded-xl border border-white/10 bg-black/30 p-4 text-center">
-                        <p className="text-white/90 font-medium">{v.firstName} {v.lastName}</p>
-                        <p className="text-white/80 text-sm mt-1 break-all">{v.email}</p>
-                        {v.phone && <p className="text-white/80 text-sm mt-0.5">{v.phone}</p>}
-                        <p className="text-white/50 text-xs mt-2">
-                          {new Date(v.createdAt).toLocaleDateString("fr-CH", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-                        </p>
-                      </div>
-                    ))}
-                </div>
-                {/* Desktop: tableau */}
-                <div className="hidden sm:block overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-white/10 text-left text-white/60 uppercase tracking-wider text-[11px]">
-                        <th className="py-3 px-2 font-medium">Prénom</th>
-                        <th className="py-3 px-2 font-medium">Nom</th>
-                        <th className="py-3 px-2 font-medium">Email</th>
-                        <th className="py-3 px-2 font-medium">Téléphone</th>
-                        <th className="py-3 px-2 font-medium">Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[...visitors]
-                        .sort((a: VisitorEntry, b: VisitorEntry) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                        .map((v) => (
-                          <tr key={v.id} className="border-b border-white/5 hover:bg-white/[0.03]">
-                            <td className="py-3 px-2 text-white/90">{v.firstName}</td>
-                            <td className="py-3 px-2 text-white/90">{v.lastName}</td>
-                            <td className="py-3 px-2 text-white/90">{v.email}</td>
-                            <td className="py-3 px-2 text-white/90">{v.phone || "—"}</td>
-                            <td className="py-3 px-2 text-white/50 text-xs">
-                              {new Date(v.createdAt).toLocaleDateString("fr-CH", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
-
         {/* Demandes en attente */}
-        <Card className="espace-pro-led-card border border-white/20 bg-black/60 mb-8 overflow-hidden w-full max-w-5xl">
+        <Card className="espace-pro-led-card border border-white/20 bg-black/60 mb-6 overflow-hidden w-full max-w-5xl">
           <CardHeader className="pb-2 text-center sm:text-left">
-            <CardTitle className="text-white espace-pro-led-title text-lg">Demandes Espace Pro ({pendingRequests.length})</CardTitle>
+            <CardTitle className="text-white espace-pro-led-title text-base">Demandes ({pendingRequests.length})</CardTitle>
           </CardHeader>
           <CardContent className="p-6 pt-0">
             {pendingRequests.length === 0 ? (
-              <p className="text-white/50 text-sm text-center sm:text-left">Aucune demande en attente.</p>
+              <p className="text-white/50 text-sm text-center sm:text-left py-2">Aucune demande en attente.</p>
             ) : (
               <div className="space-y-6">
                 {pendingRequests.map((r) => (
@@ -1192,9 +1115,9 @@ function EspaceProContent() {
 
         {/* Historique : acceptées / refusées */}
         {(acceptedRequests.length > 0 || rejectedRequests.length > 0) && (
-          <Card className="espace-pro-led-card border border-white/20 bg-black/60 mb-8 overflow-hidden w-full max-w-5xl">
+          <Card className="espace-pro-led-card border border-white/20 bg-black/60 mb-6 overflow-hidden w-full max-w-5xl">
             <CardHeader className="pb-2 text-center sm:text-left">
-              <CardTitle className="text-white espace-pro-led-title text-lg">Historique des demandes</CardTitle>
+              <CardTitle className="text-white espace-pro-led-title text-base">Historique des demandes</CardTitle>
             </CardHeader>
             <CardContent className="p-6 pt-0 space-y-6">
               {acceptedRequests.length > 0 && (
@@ -1230,14 +1153,14 @@ function EspaceProContent() {
           </Card>
         )}
 
-        {/* Leads en attente */}
-        <Card className="espace-pro-led-card border border-white/20 bg-black/60 mb-8 overflow-hidden w-full max-w-5xl">
+        {/* Leads */}
+        <Card className="espace-pro-led-card border border-white/20 bg-black/60 mb-6 overflow-hidden w-full max-w-5xl">
           <CardHeader className="pb-2 text-center sm:text-left">
-            <CardTitle className="text-white espace-pro-led-title text-lg">Leads à contacter ({pendingLeads.length})</CardTitle>
+            <CardTitle className="text-white espace-pro-led-title text-base">Leads à contacter ({pendingLeads.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {pendingLeads.length === 0 ? (
-              <p className="text-white/50 text-sm text-center sm:text-left">Aucun lead en attente.</p>
+              <p className="text-white/50 text-sm text-center sm:text-left py-2">Aucun lead en attente.</p>
             ) : (
               <div className="space-y-4">
                 {pendingLeads.map((l) => (
