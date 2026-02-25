@@ -427,16 +427,30 @@ function MesVehiculesSection() {
     if (!files?.length) return;
     const remaining = MAX_IMAGES - images.length;
     const toAdd = Array.from(files).slice(0, remaining);
-    toAdd.forEach((file) => {
-      if (file.size > 800 * 1024) return;
+    const processNext = (index: number) => {
+      if (index >= toAdd.length) {
+        e.target.value = "";
+        return;
+      }
+      const file = toAdd[index];
+      if (file.size > 4 * 1024 * 1024) {
+        toast.error(`Photo ${index + 1} trop lourde (max 4 Mo).`);
+        processNext(index + 1);
+        return;
+      }
       const reader = new FileReader();
       reader.onload = () => {
         const data = reader.result as string;
         if (data) setImages((prev) => [...prev, data].slice(0, MAX_IMAGES));
+        processNext(index + 1);
+      };
+      reader.onerror = () => {
+        toast.error("Erreur lecture photo.");
+        processNext(index + 1);
       };
       reader.readAsDataURL(file);
-    });
-    e.target.value = "";
+    };
+    processNext(0);
   };
 
   const moveImage = (from: number, direction: -1 | 1) => {
@@ -725,12 +739,20 @@ function MesVehiculesSection() {
                 </div>
               ))}
               {images.length < MAX_IMAGES && (
-                <label htmlFor="mes-vehicules-photos" className="min-w-[5rem] min-h-[5rem] w-20 h-20 sm:w-24 sm:h-24 rounded-lg border-2 border-dashed border-white/30 flex items-center justify-center text-white/50 hover:border-white/50 hover:text-white/90 transition-colors cursor-pointer touch-manipulation">
-                  <ImagePlus className="w-8 h-8 sm:w-6 sm:h-6" />
+                <label className="min-w-[5rem] min-h-[5rem] w-20 h-20 sm:w-24 sm:h-24 rounded-lg border-2 border-dashed border-white/30 flex items-center justify-center text-white/50 hover:border-white/50 hover:text-white/90 transition-colors cursor-pointer touch-manipulation active:scale-95">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*,image/jpeg,image/jpg,image/png,image/webp"
+                    multiple
+                    onChange={handleImageChange}
+                    className="absolute w-px h-px -left-[9999px] opacity-0"
+                    aria-label="Ajouter des photos"
+                  />
+                  <ImagePlus className="w-8 h-8 sm:w-6 sm:h-6 pointer-events-none" />
                 </label>
               )}
             </div>
-            <input id="mes-vehicules-photos" ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImageChange} className="absolute w-0 h-0 opacity-0 overflow-hidden pointer-events-none" aria-label="Ajouter des photos" />
           </div>
 
           {/* Grille tarifaire */}
