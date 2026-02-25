@@ -228,7 +228,7 @@ function FlotteBaseSection() {
   const labelClass = "text-xs font-medium text-white/60 tracking-wide block mb-1.5";
 
   return (
-    <Card className="espace-pro-led-card border border-white/10 mb-8 overflow-hidden">
+    <Card className="espace-pro-led-card border border-white/10 mb-8 overflow-hidden w-full max-w-5xl">
       <CardHeader className="pb-2">
         <CardTitle className="text-white espace-pro-led-title text-base flex items-center gap-2">
           <Car className="w-5 h-5 text-white/70" /> Flotte de base ({baseFleet.length})
@@ -473,14 +473,18 @@ function MesVehiculesSection() {
     const submittedAvailabilityUrl = String(fd.get("availabilityUrl") ?? "").trim();
     const rawExtraKm = String(fd.get("extraKmPriceChf") ?? "").trim().replace(",", ".");
     const submittedExtraKm = rawExtraKm ? Math.max(0, parseFloat(rawExtraKm)) || 5 : 5;
-    if (!submittedBrand || !submittedModel || !submittedPower || !submittedTransmission || !submittedDescription) return;
-    if (images.length === 0) return;
+    if (!submittedBrand || !submittedModel || !submittedPower || !submittedTransmission || !submittedDescription) {
+      toast.error("Remplissez tous les champs obligatoires (marque, modèle, puissance, transmission, description).");
+      return;
+    }
     const tiers: PricingTier[] = pricing.map((p) => ({
       ...p,
       price: p.price || "Sur demande",
     }));
     const videosList = videos.map((u) => u.trim()).filter(Boolean).slice(0, 2);
-    const imagesList = images.slice(0, 10);
+    // Sur mobile la galerie peut échouer : on accepte sans photo et on met une image placeholder (modifiable ensuite)
+    const PLACEHOLDER_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect fill='%23333' width='400' height='300'/%3E%3Ctext fill='%23888' font-family='sans-serif' font-size='18' x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle'%3EPhoto à ajouter%3C/text%3E%3C/svg%3E";
+    const imagesList = images.length > 0 ? images.slice(0, 10) : [PLACEHOLDER_IMG];
     if (editingSlug) {
       updateAdminVehicle(editingSlug, {
         brand: submittedBrand,
@@ -519,6 +523,7 @@ function MesVehiculesSection() {
     resetForm();
     refreshVehicles();
     syncAdminVehiclesToServer();
+    toast.success(editingSlug ? "Véhicule mis à jour." : "Véhicule ajouté.");
   };
 
   const handleRemove = (slug: string) => {
@@ -579,7 +584,7 @@ function MesVehiculesSection() {
   };
 
   return (
-    <Card className="espace-pro-led-card border border-white/10 mb-8 overflow-hidden">
+    <Card className="espace-pro-led-card border border-white/10 mb-8 overflow-hidden w-full max-w-5xl">
       <CardHeader className="pb-2">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <CardTitle className="text-white espace-pro-led-title text-base flex items-center gap-2">
@@ -720,16 +725,12 @@ function MesVehiculesSection() {
                 </div>
               ))}
               {images.length < MAX_IMAGES && (
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-20 h-20 rounded-lg border border-dashed border-white/30 flex items-center justify-center text-white/40 hover:border-white/40 hover:text-white/80 transition-colors"
-                >
-                  <ImagePlus className="w-6 h-6" />
-                </button>
+                <label htmlFor="mes-vehicules-photos" className="min-w-[5rem] min-h-[5rem] w-20 h-20 sm:w-24 sm:h-24 rounded-lg border-2 border-dashed border-white/30 flex items-center justify-center text-white/50 hover:border-white/50 hover:text-white/90 transition-colors cursor-pointer touch-manipulation">
+                  <ImagePlus className="w-8 h-8 sm:w-6 sm:h-6" />
+                </label>
               )}
             </div>
-            <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImageChange} className="hidden" />
+            <input id="mes-vehicules-photos" ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImageChange} className="absolute w-0 h-0 opacity-0 overflow-hidden pointer-events-none" aria-label="Ajouter des photos" />
           </div>
 
           {/* Grille tarifaire */}
@@ -1074,7 +1075,7 @@ function EspaceProContent() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8 sm:py-10 max-w-5xl relative z-10 flex flex-col items-center">
+      <div className="container mx-auto px-4 py-8 sm:py-10 max-w-5xl relative z-10 flex flex-col items-stretch">
         {/* Stats — Demandes & Leads */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 w-full sm:max-w-none max-w-[18rem] mx-auto sm:max-w-none">
           <Card className="espace-pro-led-card border border-white/20 bg-black/60 overflow-hidden w-full">
