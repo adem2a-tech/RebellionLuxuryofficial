@@ -92,7 +92,7 @@ const VehiculeDetail = () => {
           </Button>
         </motion.div>
 
-        {/* Titre véhicule — lisible et stylé */}
+        {/* Titre véhicule — sobre et premium */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -104,7 +104,7 @@ const VehiculeDetail = () => {
               Indisponible jusqu&apos;au {formatDate(unavailableUntil)}
             </div>
           )}
-          <h1 className="font-luxury text-3xl md:text-4xl font-bold text-white tracking-[0.06em]">
+          <h1 className="font-luxury text-2xl md:text-3xl font-semibold text-white tracking-[0.12em] uppercase">
             {vehicle.name}
           </h1>
         </motion.div>
@@ -119,7 +119,7 @@ const VehiculeDetail = () => {
             className="space-y-2"
           >
             <div
-              className="relative aspect-[4/3] min-h-[320px] overflow-hidden bg-black select-none cursor-grab active:cursor-grabbing vehicle-image-led flex items-center justify-center"
+              className="relative aspect-[4/3] min-h-[320px] overflow-hidden bg-black select-none cursor-grab active:cursor-grabbing vehicle-image-led"
               onTouchStart={(e) => { touchStartX.current = e.targetTouches[0]?.clientX ?? null; }}
               onTouchEnd={(e) => {
                 if (touchStartX.current == null || slides.length <= 1) { touchStartX.current = null; return; }
@@ -150,23 +150,24 @@ const VehiculeDetail = () => {
                   muted
                   playsInline
                   src={slides[mainIndex].src}
-                  className="w-full h-full object-contain object-center"
+                  className="absolute inset-0 w-full h-full object-cover object-center"
                 />
               ) : (
                 <img
                   src={slides[mainIndex].src}
                   alt={`${vehicle.name} - Vue ${mainIndex + 1}`}
-                  className="w-full h-full object-contain object-center"
+                  className="absolute inset-0 w-full h-full object-cover object-center"
                 />
               )}
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 rounded-md bg-black/80 px-3 py-2 border border-white/25">
-                <img
-                  src="/rebellion-luxury-logo.png"
-                  alt="Rebellion Luxury"
-                  className="h-8 w-8 object-contain shrink-0"
-                />
-                <span className="font-luxury text-white font-semibold uppercase tracking-[0.15em] text-sm">
+              <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-black/30 backdrop-blur-md border border-white/[0.08] px-2 py-1 vehicle-detail-brand">
+                <span className="font-luxury text-white/90 font-medium tracking-[0.2em] text-[10px] sm:text-xs uppercase whitespace-nowrap">
                   Rebellion Luxury
+                </span>
+                <span className="flex shrink-0 text-white/60" aria-hidden>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-3 h-3">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                    <path d="M8 12l3 3 5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                 </span>
               </div>
             </div>
@@ -216,108 +217,108 @@ const VehiculeDetail = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="space-y-6 bg-black p-5 md:p-6 rounded-lg lg:rounded-l-none lg:rounded-r-lg vehicle-info-led vehicle-detail-scroll w-full overflow-y-auto max-h-[calc(100vh-12rem)]"
+            className="space-y-5 bg-black p-4 md:p-5 rounded-md lg:rounded-l-none lg:rounded-r-md vehicle-info-led vehicle-detail-scroll w-full overflow-y-auto max-h-[calc(100vh-12rem)]"
           >
-            {/* Boutons Louez + Voir disponibilité */}
-            <div className="space-y-3">
+            {/* Boutons Louez + Voir disponibilité — sobre et premium */}
+            <div className="space-y-2">
               <Button
                 size="lg"
-                className="w-full bg-white hover:bg-white/95 text-black font-luxury font-semibold uppercase tracking-[0.18em] py-4 rounded-lg flex items-center justify-center gap-2 shadow-[0_0_24px_rgba(255,255,255,0.08)] transition-all duration-300"
+                className="w-full bg-white/95 hover:bg-white text-black font-medium tracking-[0.14em] uppercase py-3 rounded-md flex items-center justify-center gap-2 transition-colors"
                 onClick={openLouer}
               >
                 Louez
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-4 h-4" />
               </Button>
               <Button
                 size="lg"
                 variant="ghost"
-                className="w-full bg-white/10 hover:bg-white/20 text-white font-semibold uppercase tracking-wider py-4 rounded-lg flex items-center justify-center gap-2 border border-white/30"
+                className="w-full bg-transparent hover:bg-white/[0.04] text-white/90 font-medium tracking-[0.12em] uppercase py-3 rounded-md flex items-center justify-center gap-2 border border-white/15 transition-colors"
                 onClick={openDispo}
               >
                 Voir disponibilité
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
 
-            {/* Section Caractéristiques — lisible, icônes plus grandes */}
+            {/* Section Caractéristiques — sobre, haut de gamme */}
             <div>
-              <h3 className="font-luxury text-white font-semibold text-lg tracking-[0.08em] pb-3 border-b border-white/25 mb-4">
+              <h3 className="font-medium text-white/90 text-sm tracking-[0.15em] uppercase pb-2 border-b border-white/[0.08] mb-3">
                 Caractéristiques
               </h3>
-              <ul className="space-y-0 divide-y divide-white/10">
-                <li className="flex items-center justify-between gap-4 py-3 first:pt-0">
-                  <span className="flex items-center gap-3 text-white/90 text-base">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 shrink-0">
-                      <Shield className={`w-5 h-5 ${accentIcon}`} />
+              <ul className="space-y-0 divide-y divide-white/[0.06]">
+                <li className="flex items-center justify-between gap-4 py-2.5 first:pt-0">
+                  <span className="flex items-center gap-2.5 text-white/70 text-sm">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-md bg-white/[0.06] shrink-0">
+                      <Shield className={`w-3.5 h-3.5 ${accentIcon}`} />
                     </span>
                     Caution
                   </span>
-                  <span className="font-semibold text-white text-base tabular-nums">{specVal(s.caution)}</span>
+                  <span className="font-medium text-white/90 text-sm tabular-nums">{specVal(s.caution)}</span>
                 </li>
-                <li className="flex items-center justify-between gap-4 py-3">
-                  <span className="flex items-center gap-3 text-white/90 text-base">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 shrink-0">
-                      <Gauge className={`w-5 h-5 ${accentIcon}`} />
+                <li className="flex items-center justify-between gap-4 py-2.5">
+                  <span className="flex items-center gap-2.5 text-white/70 text-sm">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-md bg-white/[0.06] shrink-0">
+                      <Gauge className={`w-3.5 h-3.5 ${accentIcon}`} />
                     </span>
                     Puissance
                   </span>
-                  <span className="font-semibold text-white text-base">{specVal(s.power)}</span>
+                  <span className="font-medium text-white/90 text-sm">{specVal(s.power)}</span>
                 </li>
-                <li className="flex items-center justify-between gap-4 py-3">
-                  <span className="flex items-center gap-3 text-white/90 text-base">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 shrink-0">
-                      <Car className={`w-5 h-5 ${accentIcon}`} />
+                <li className="flex items-center justify-between gap-4 py-2.5">
+                  <span className="flex items-center gap-2.5 text-white/70 text-sm">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-md bg-white/[0.06] shrink-0">
+                      <Car className={`w-3.5 h-3.5 ${accentIcon}`} />
                     </span>
                     Type
                   </span>
-                  <span className="font-semibold text-white text-base">{specVal(s.type)}</span>
+                  <span className="font-medium text-white/90 text-sm">{specVal(s.type)}</span>
                 </li>
-                <li className="flex items-center justify-between gap-4 py-3">
-                  <span className="flex items-center gap-3 text-white/90 text-base">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 shrink-0">
-                      <Settings className={`w-5 h-5 ${accentIcon}`} />
+                <li className="flex items-center justify-between gap-4 py-2.5">
+                  <span className="flex items-center gap-2.5 text-white/70 text-sm">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-md bg-white/[0.06] shrink-0">
+                      <Settings className={`w-3.5 h-3.5 ${accentIcon}`} />
                     </span>
                     Moteur
                   </span>
-                  <span className="font-semibold text-white text-base">{specVal(s.transmission)}</span>
+                  <span className="font-medium text-white/90 text-sm">{specVal(s.transmission)}</span>
                 </li>
-                <li className="flex items-center justify-between gap-4 py-3">
-                  <span className="flex items-center gap-3 text-white/90 text-base">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 shrink-0">
-                      <Calendar className={`w-5 h-5 ${accentIcon}`} />
+                <li className="flex items-center justify-between gap-4 py-2.5">
+                  <span className="flex items-center gap-2.5 text-white/70 text-sm">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-md bg-white/[0.06] shrink-0">
+                      <Calendar className={`w-3.5 h-3.5 ${accentIcon}`} />
                     </span>
                     Année
                   </span>
-                  <span className="font-semibold text-white text-base tabular-nums">{specVal(s.year)}</span>
+                  <span className="font-medium text-white/90 text-sm tabular-nums">{specVal(s.year)}</span>
                 </li>
-                <li className="flex items-center justify-between gap-4 py-3">
-                  <span className="flex items-center gap-3 text-white/90 text-base">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 shrink-0">
-                      <DoorOpen className={`w-5 h-5 ${accentIcon}`} />
+                <li className="flex items-center justify-between gap-4 py-2.5">
+                  <span className="flex items-center gap-2.5 text-white/70 text-sm">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-md bg-white/[0.06] shrink-0">
+                      <DoorOpen className={`w-3.5 h-3.5 ${accentIcon}`} />
                     </span>
                     Portes
                   </span>
-                  <span className="font-semibold text-white text-base tabular-nums">{specVal(s.doors)}</span>
+                  <span className="font-medium text-white/90 text-sm tabular-nums">{specVal(s.doors)}</span>
                 </li>
-                <li className="flex items-center justify-between gap-4 py-3">
-                  <span className="flex items-center gap-3 text-white/90 text-base">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 shrink-0">
-                      <Users className={`w-5 h-5 ${accentIcon}`} />
+                <li className="flex items-center justify-between gap-4 py-2.5">
+                  <span className="flex items-center gap-2.5 text-white/70 text-sm">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-md bg-white/[0.06] shrink-0">
+                      <Users className={`w-3.5 h-3.5 ${accentIcon}`} />
                     </span>
                     Sièges
                   </span>
-                  <span className="font-semibold text-white text-base tabular-nums">{specVal(s.seats)}</span>
+                  <span className="font-medium text-white/90 text-sm tabular-nums">{specVal(s.seats)}</span>
                 </li>
               </ul>
             </div>
 
-            {/* Section Tarifs de location — cartes lisibles et stylées */}
+            {/* Section Tarifs de location */}
             <div>
-              <h3 className="font-luxury text-white font-semibold text-lg tracking-[0.08em] pb-3 border-b border-white/25 mb-4 flex items-center gap-2">
-                <Calendar className={`w-5 h-5 ${accentIcon}`} />
+              <h3 className="font-medium text-white/90 text-sm tracking-[0.15em] uppercase pb-2 border-b border-white/[0.08] mb-3 flex items-center gap-2">
+                <Calendar className={`w-4 h-4 ${accentIcon}`} />
                 Tarifs de location
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
                 {vehicle.pricing.map((tier, i) => {
                   const { icon, title, subtitle } = getForfaitIconAndLabel(tier.duration);
                   return (
@@ -326,25 +327,25 @@ const VehiculeDetail = () => {
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.04 }}
-                      className="rounded-xl bg-white/[0.06] border border-white/20 p-4 flex flex-col gap-2 hover:border-white/30 transition-colors"
+                      className="rounded-md bg-white/[0.04] border border-white/[0.08] p-3 flex flex-col gap-2 hover:border-white/[0.12] transition-colors"
                     >
                       <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/10">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white/[0.06]">
                             {icon}
                           </span>
                           <div className="min-w-0">
-                            <p className="text-white font-medium text-base leading-tight">{title}</p>
+                            <p className="text-white/90 font-medium text-sm leading-tight">{title}</p>
                             {subtitle && (
-                              <p className="text-white/70 text-sm mt-0.5">{subtitle}</p>
+                              <p className="text-white/50 text-xs mt-0.5">{subtitle}</p>
                             )}
                           </div>
                         </div>
-                        <span className={`${accentPrice} text-lg shrink-0 tabular-nums`}>
+                        <span className={`${accentPrice} text-base shrink-0 tabular-nums`}>
                           {tier.price}
                         </span>
                       </div>
-                      <p className="text-white/90 text-sm font-medium">
+                      <p className="text-white/50 text-xs">
                         {tier.km} inclus
                       </p>
                     </motion.div>
@@ -352,22 +353,22 @@ const VehiculeDetail = () => {
                 })}
               </div>
               <div className="flex flex-col gap-3">
-                <div className="rounded-xl bg-white/[0.06] border border-white/20 px-4 py-3 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 shrink-0">
-                      <Lock className="w-5 h-5 text-white/90" />
+                <div className="rounded-md bg-white/[0.04] border border-white/[0.08] px-3 py-2.5 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-md bg-white/[0.06] shrink-0">
+                      <Lock className="w-3.5 h-3.5 text-white/80" />
                     </span>
                     <div>
-                      <p className="text-white font-medium text-base">Caution requise</p>
-                      <p className="text-white/70 text-sm">Empreinte bancaire ou dépôt de garantie</p>
+                      <p className="text-white/90 font-medium text-sm">Caution requise</p>
+                      <p className="text-white/50 text-xs">Empreinte bancaire ou dépôt</p>
                     </div>
                   </div>
-                  <span className="font-bold text-white text-base shrink-0 tabular-nums">{vehicle.specs.caution}</span>
+                  <span className="font-medium text-white/90 text-sm shrink-0 tabular-nums">{vehicle.specs.caution}</span>
                 </div>
-                <div className="rounded-xl bg-white/[0.06] border border-white/20 px-4 py-3 flex items-center gap-3">
-                  <Info className="w-5 h-5 text-white/80 shrink-0" />
-                  <p className="text-white/90 text-sm">
-                    Kilomètre supplémentaire : <span className="font-semibold text-white">{vehicle.extraKmPriceChf ?? 5} CHF/km</span>
+                <div className="rounded-md bg-white/[0.04] border border-white/[0.08] px-3 py-2.5 flex items-center gap-2.5">
+                  <Info className="w-3.5 h-3.5 text-white/60 shrink-0" />
+                  <p className="text-white/70 text-xs">
+                    Km supplémentaire : <span className="font-medium text-white/90">{vehicle.extraKmPriceChf ?? 5} CHF/km</span>
                   </p>
                 </div>
               </div>

@@ -35,14 +35,15 @@
     inset 0 0 12px rgba(255, 255, 255, 0.03);
 }
 
-/* LED blanche sur les bords — panneau infos */
+/* Badge Rebellion Luxury + validé — discret et centré, surtout sur mobile */
+.vehicle-detail-brand {
+  max-width: min(90vw, 220px);
+}
+
+/* Panneau infos — bordure discrète */
 .vehicle-info-led {
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-left: none;
-  box-shadow:
-    0 0 8px rgba(255, 255, 255, 0.15),
-    0 0 16px rgba(255, 255, 255, 0.1),
-    inset 0 0 12px rgba(255, 255, 255, 0.03);
 }
 
 /* Scrollbar stylée — thème sombre premium */
@@ -75,7 +76,24 @@
 
   .vehicle-detail__left {
     flex: 1 1 auto;
-    padding: 0.75rem;
+    padding: 0.75rem 0;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    width: calc(100% + 2rem);
+  }
+
+  /* Mobile : image pleine largeur, sans cadre — rendu immersif type cover */
+  .vehicle-image-led {
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .vehicle-detail-brand {
+    top: 0.75rem;
+    left: 0.75rem;
+    background: rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(10px);
   }
 
   .vehicle-detail__right {

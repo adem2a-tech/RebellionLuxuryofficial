@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { MessageCircle, X } from "lucide-react";
 
 const TITLE_ID = "welcome-popup-title";
-const RECURRENCE_MS = 90 * 1000; // 1 min 30
+const RECURRENCE_MS = 8 * 60 * 1000; // 8 minutes
 
 type WelcomePopupProps = {
   defaultOpen: boolean;
@@ -87,54 +87,53 @@ export default function WelcomePopup({ defaultOpen, isIAOpen = false, onTryIA }:
           aria-modal="true"
           aria-labelledby={TITLE_ID}
         >
-          <div className="mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-3 rounded-3xl border border-white/[0.06] bg-black/90 px-4 py-3 shadow-[0_-2px_16px_rgba(0,0,0,0.3)] backdrop-blur-xl sm:flex-nowrap sm:gap-4 sm:px-5 sm:py-3.5">
-            <div className="flex min-w-0 flex-1 items-center gap-3">
-              {/* Logo : uniquement le rond (détour), pas de carré */}
-              <div className="logo-round h-10 w-10 shrink-0 overflow-hidden sm:h-11 sm:w-11">
+          <div className="mx-auto flex max-w-xl flex-wrap items-center justify-between gap-2 rounded-2xl border border-white/[0.06] bg-black/80 px-3 py-2.5 shadow-[0_-1px_12px_rgba(0,0,0,0.2)] backdrop-blur-xl sm:flex-nowrap sm:gap-3 sm:px-4 sm:py-2.5">
+            <div className="flex min-w-0 flex-1 items-center gap-2.5">
+              <div className="logo-round h-8 w-8 shrink-0 overflow-hidden sm:h-9 sm:w-9">
                 <img
                   src="/rebellion-luxury-logo.png"
-                  alt="Rebellion Luxury"
+                  alt=""
                   className="h-full w-full object-cover"
                 />
               </div>
               <div className="min-w-0">
                 <h2
                   id={TITLE_ID}
-                  className="font-luxury text-[15px] font-semibold tracking-[0.06em] text-white sm:text-base"
+                  className="font-luxury text-[12px] font-medium tracking-[0.12em] text-white/90 uppercase sm:text-[13px]"
                 >
-                  Venez tester notre IA
+                  Assistant IA
                 </h2>
-                <p className="font-luxury mt-0.5 text-[13px] font-medium tracking-[0.02em] text-white/80 leading-snug sm:text-sm">
-                  Rebellion IA vous répond sur les véhicules, tarifs et réservations.
+                <p className="mt-0.5 text-[11px] text-white/50 tracking-wide sm:text-xs">
+                  Véhicules, tarifs, réservations
                 </p>
               </div>
             </div>
-            <div className="flex w-full shrink-0 items-center justify-end gap-1.5 sm:w-auto">
+            <div className="flex w-full shrink-0 items-center justify-end gap-1 sm:w-auto">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="font-luxury order-2 border-white/15 bg-transparent text-xs font-medium tracking-[0.08em] text-white/90 hover:bg-white/5 hover:text-white sm:order-1"
+                className="order-2 h-8 rounded-md border-0 bg-transparent text-[11px] font-medium tracking-wide text-white/50 hover:bg-white/5 hover:text-white/70 sm:order-1"
                 onClick={handleClose}
               >
                 Fermer
               </Button>
               <Button
                 type="button"
-                size="default"
-                className="font-luxury order-1 rounded-xl bg-white px-3.5 py-2 text-[13px] font-semibold tracking-[0.08em] text-black transition-all hover:bg-white/95 sm:order-2"
+                size="sm"
+                className="order-1 h-8 rounded-md border border-white/20 bg-white/5 px-3 text-[11px] font-medium tracking-[0.1em] text-white/90 transition-colors hover:bg-white/10 hover:text-white sm:order-2"
                 onClick={handleTryIA}
               >
-                <MessageCircle className="mr-1.5 h-3.5 w-3.5" />
-                Tester l&apos;IA
+                <MessageCircle className="mr-1.5 h-3 w-3" />
+                Tester
               </Button>
               <button
                 type="button"
                 onClick={handleClose}
-                className="rounded-lg p-1.5 text-white/50 transition-colors hover:bg-white/5 hover:text-white/80 focus:outline-none focus:ring-2 focus:ring-white/10"
+                className="rounded-md p-1 text-white/40 hover:text-white/70 transition-colors"
                 aria-label="Fermer"
               >
-                <X className="h-4 w-4" />
+                <X className="h-3.5 w-3.5" />
               </button>
             </div>
           </div>

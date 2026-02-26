@@ -14,14 +14,10 @@ import { getAllVehicles } from "@/data/vehicles";
 
 const Footer = () => {
   return (
-    <footer id="contact" className="py-16 lg:py-20 border-t border-border relative overflow-hidden led-section">
-      {/* Background glow */}
-      <motion.div
-        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/5 blur-[150px] rounded-full"
-        initial={{ opacity: 0, scale: 0.8 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 1, ease: [0.34, 1.56, 0.64, 1] }}
+    <footer id="contact" className="py-20 lg:py-24 border-t border-white/[0.06] relative overflow-hidden">
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: "radial-gradient(ellipse 80% 50% at 50% 100%, rgba(255,255,255,0.02) 0%, transparent 60%)" }}
       />
 
       <div className="container mx-auto px-4 lg:px-8 relative z-10">
@@ -47,13 +43,13 @@ const Footer = () => {
                 />
               </motion.div>
               <div className="flex flex-col">
-                <span className="font-display text-sm lg:text-base font-semibold uppercase tracking-[0.15em] text-foreground/95">
+                <span className="font-display text-sm font-semibold uppercase tracking-[0.2em] text-white/95">
                   Rebellion Luxury
                 </span>
-                <span className="text-muted-foreground text-xs">Suisse, Evionnaz</span>
+                <span className="text-white/40 text-[11px] tracking-wide mt-0.5">Suisse · Evionnaz</span>
               </div>
             </div>
-            <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+            <p className="text-white/45 text-sm leading-relaxed mb-6 font-light max-w-xs">
               Location de véhicules de luxe en Suisse romande. Vivez l'expérience
               de conduire les plus belles supercars.
             </p>
@@ -105,8 +101,8 @@ const Footer = () => {
             transition={{ duration: 0.6, delay: 0.1, ease: [0.34, 1.56, 0.64, 1] }}
             style={{ transformStyle: "preserve-3d" }}
           >
-            <h4 className="font-display font-semibold mb-4">Navigation</h4>
-            <ul className="space-y-3">
+            <h4 className="font-display text-xs font-semibold uppercase tracking-[0.2em] text-white/70 mb-5">Navigation</h4>
+            <ul className="space-y-2.5">
               {[
                 { label: "Accueil", href: "#hero" },
                 { label: "Véhicules", href: "/vehicules" },
@@ -118,8 +114,8 @@ const Footer = () => {
                 <li key={link.label}>
                   <motion.a
                     href={link.href}
-                    className="inline-block text-muted-foreground hover:text-primary transition-colors text-sm"
-                    whileHover={{ x: 6, color: "hsl(var(--primary))" }}
+                    className="inline-block text-white/50 hover:text-white/90 transition-colors text-sm font-light"
+                    whileHover={{ x: 4 }}
                     transition={{ duration: 0.2 }}
                   >
                     {link.label}
@@ -137,14 +133,14 @@ const Footer = () => {
             transition={{ duration: 0.6, delay: 0.2, ease: [0.34, 1.56, 0.64, 1] }}
             style={{ transformStyle: "preserve-3d" }}
           >
-            <h4 className="font-display font-semibold mb-4">Nos véhicules</h4>
-            <ul className="space-y-3">
+            <h4 className="font-display text-xs font-semibold uppercase tracking-[0.2em] text-white/70 mb-5">Nos véhicules</h4>
+            <ul className="space-y-2.5">
               {getAllVehicles().map((v) => (
                 <li key={v.slug}>
                   <Link to={`/vehicules/${v.slug}`}>
                     <motion.span
-                      className="inline-block text-muted-foreground hover:text-primary transition-colors text-sm cursor-pointer"
-                      whileHover={{ x: 6, color: "hsl(var(--primary))" }}
+                      className="inline-block text-white/50 hover:text-white/90 transition-colors text-sm cursor-pointer font-light"
+                      whileHover={{ x: 4 }}
                       transition={{ duration: 0.2 }}
                     >
                       {v.name}
@@ -163,40 +159,40 @@ const Footer = () => {
             transition={{ duration: 0.6, delay: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
             style={{ transformStyle: "preserve-3d" }}
           >
-            <h4 className="font-display font-semibold mb-4">Contact</h4>
-            <ul className="space-y-3">
+            <h4 className="font-display text-xs font-semibold uppercase tracking-[0.2em] text-white/70 mb-5">Contact</h4>
+            <ul className="space-y-2.5">
               <li>
                 <motion.a
                   href={CONTACT.googleMapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 text-muted-foreground hover:text-primary transition-colors text-sm"
-                  whileHover={{ x: 6 }}
+                  className="flex items-center gap-3 text-white/50 hover:text-white/90 transition-colors text-sm font-light"
+                  whileHover={{ x: 4 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <MapPin className="w-4 h-4 text-primary shrink-0" />
+                  <MapPin className="w-4 h-4 text-white/40 shrink-0" />
                   <span>{CONTACT.location}</span>
                 </motion.a>
               </li>
               <li>
                 <motion.a
                   href={`tel:${CONTACT.phoneRaw}`}
-                  className="flex items-center gap-3 text-muted-foreground hover:text-primary transition-colors text-sm"
-                  whileHover={{ x: 6 }}
+                  className="flex items-center gap-3 text-white/50 hover:text-white/90 transition-colors text-sm font-light"
+                  whileHover={{ x: 4 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Phone className="w-4 h-4 text-primary shrink-0" />
+                  <Phone className="w-4 h-4 text-white/40 shrink-0" />
                   <span>{CONTACT.phone}</span>
                 </motion.a>
               </li>
               <li>
                 <motion.a
                   href={`mailto:${CONTACT.email}`}
-                  className="flex items-center gap-3 text-muted-foreground hover:text-primary transition-colors text-sm"
-                  whileHover={{ x: 6 }}
+                  className="flex items-center gap-3 text-white/50 hover:text-white/90 transition-colors text-sm font-light"
+                  whileHover={{ x: 4 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Mail className="w-4 h-4 text-primary shrink-0" />
+                  <Mail className="w-4 h-4 text-white/40 shrink-0" />
                   <span>{CONTACT.email}</span>
                 </motion.a>
               </li>
@@ -205,8 +201,8 @@ const Footer = () => {
                   href={CONTACT.whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 text-muted-foreground hover:text-[#25d366] transition-colors text-sm"
-                  whileHover={{ x: 6 }}
+                  className="flex items-center gap-3 text-white/50 hover:text-[#25d366] transition-colors text-sm font-light"
+                  whileHover={{ x: 4 }}
                   transition={{ duration: 0.2 }}
                 >
                   <IoLogoWhatsapp className="w-4 h-4 shrink-0" />

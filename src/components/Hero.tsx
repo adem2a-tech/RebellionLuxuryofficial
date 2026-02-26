@@ -138,11 +138,11 @@ const Hero = ({ onOpenChat, onCheckAvailability }: HeroProps) => {
             style={{ transformStyle: "preserve-3d", perspective: 1000 }}
           >
             <motion.span
-              className="inline-block px-4 py-2 rounded-full border border-primary/30 bg-primary/10 text-primary text-sm font-medium mb-6"
-              whileHover={{ scale: 1.05, translateZ: 8 }}
+              className="inline-block px-4 py-2 rounded-full border border-white/[0.12] bg-white/[0.04] text-white/90 text-xs font-medium tracking-[0.2em] uppercase mb-8"
+              whileHover={{ scale: 1.02, translateZ: 8 }}
               transition={{ duration: 0.3 }}
             >
-              🇨🇭 Suisse Romande • Location Premium
+              🇨🇭 Suisse Romande · Location Premium
             </motion.span>
           </motion.div>
 
@@ -151,10 +151,9 @@ const Hero = ({ onOpenChat, onCheckAvailability }: HeroProps) => {
             animate={{ opacity: 1, y: 0, rotateX: 0, translateZ: 0 }}
             transition={{ duration: 0.9, delay: 0.35, ease: [0.34, 1.56, 0.64, 1] }}
             style={{ transformStyle: "preserve-3d", perspective: 1000 }}
-            className="font-display text-4xl md:text-5xl lg:text-7xl font-bold mb-6 leading-tight"
+            className="font-display text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-semibold mb-8 leading-[1.1] tracking-tight text-white"
           >
-            Location de{" "}
-            <span className="text-gradient-orange">véhicule haute gamme</span>
+            Location de véhicule haute gamme
             <br />
             en Suisse romande
           </motion.h1>
@@ -165,10 +164,10 @@ const Hero = ({ onOpenChat, onCheckAvailability }: HeroProps) => {
             animate={{ opacity: 1, y: 0, rotateX: 0, translateZ: 0 }}
             transition={{ duration: 0.9, delay: 0.5, ease: [0.34, 1.56, 0.64, 1] }}
             style={{ transformStyle: "preserve-3d", perspective: 1000 }}
-            className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed scroll-mt-24"
+            className="text-base md:text-lg text-white/60 mb-12 max-w-xl mx-auto leading-relaxed scroll-mt-24 font-light"
           >
             Découvrez notre flotte exclusive de supercars et posez vos questions
-            à <span className="text-primary font-semibold">Rebellion IA</span>, notre assistant intelligent
+            à <span className="text-white font-semibold">Rebellion IA</span>, notre assistant intelligent
             qui connaît tout le site sur le bout des doigts — posez-lui toutes les questions imaginables !
           </motion.p>
 
@@ -190,8 +189,8 @@ const Hero = ({ onOpenChat, onCheckAvailability }: HeroProps) => {
             className="flex flex-col items-center gap-2 text-muted-foreground"
             style={{ transformStyle: "preserve-3d", perspective: 200 }}
           >
-            <span className="text-sm">Découvrir</span>
-            <ChevronDown className="w-5 h-5" />
+            <span className="text-xs tracking-[0.25em] uppercase text-white/40">Découvrir</span>
+            <ChevronDown className="w-4 h-4 text-white/30" />
           </motion.div>
         </motion.div>
     </section>

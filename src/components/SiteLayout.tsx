@@ -32,7 +32,7 @@ function SiteLayoutInner({ justFinishedTransition }: SiteLayoutInnerProps) {
     recordVisit(location.pathname || "/");
   }, [location.pathname]);
 
-  // Bannière IA récurrente en bas de page (réapparaît toutes les 1min30)
+  // Bannière IA récurrente en bas de page (réapparaît toutes les 8 min)
   const showWelcomeBanner = true;
 
   return (

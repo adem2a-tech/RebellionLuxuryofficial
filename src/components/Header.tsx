@@ -79,7 +79,7 @@ const Header = ({ onOpenChat }: HeaderProps) => {
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.4 }}
-      className="fixed top-0 left-0 right-0 z-50 bg-black/98 backdrop-blur-xl border-b border-white/[0.08]"
+      className="fixed top-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-xl border-b border-white/[0.08]"
     >
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20 gap-4 lg:gap-6">
@@ -96,9 +96,11 @@ const Header = ({ onOpenChat }: HeaderProps) => {
                 className="w-full h-full object-cover"
               />
             </div>
-            <span className="font-luxury text-sm lg:text-base font-semibold tracking-[0.24em] text-white/95 uppercase group-hover:text-white transition-colors duration-300">
-              <span className="font-bold tracking-[0.28em]">Rebellion</span>
-              <span className="font-medium text-white/90 tracking-[0.18em] ml-0.5">Luxury</span>
+            <span className="font-luxury text-xs lg:text-sm font-medium tracking-[0.3em] text-white/85 uppercase group-hover:text-white transition-colors duration-300">
+              Rebellion Luxury
+            </span>
+            <span className="shrink-0 w-4 h-4 lg:w-5 lg:h-5 flex items-center justify-center rounded-[4px] overflow-hidden border border-white/20 bg-red-600" aria-hidden title="Suisse">
+              <img src="/swiss-flag.png" alt="" className="w-full h-full object-contain" />
             </span>
           </Link>
 
@@ -172,86 +174,105 @@ const Header = ({ onOpenChat }: HeaderProps) => {
         </div>
 
 
-        {/* Mobile Menu — fluide, police haut de gamme, beau */}
+        {/* Mobile Menu — structure claire, premium, tous les onglets visibles */}
         <AnimatePresence>
           {isMobileMenuOpen && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+              transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="lg:hidden overflow-hidden border-t border-white/[0.06] bg-black"
             >
               <nav
-                className="flex flex-col gap-1 py-4 pb-5 px-3 antialiased overflow-y-auto overflow-x-hidden"
+                className="mobile-nav flex flex-col py-3 px-3 overflow-y-auto overflow-x-hidden"
                 style={{
-                  fontFamily: "system-ui, -apple-system, sans-serif",
-                  maxHeight: "min(calc(100vh - 4rem), 85vh)",
+                  maxHeight: "min(calc(100vh - 4.5rem), 88vh)",
                   WebkitOverflowScrolling: "touch",
                 }}
+                aria-label="Navigation principale"
               >
-                <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="min-h-[52px] pl-4 pr-4 flex items-center rounded-2xl text-[17px] font-semibold text-white bg-white/[0.04] hover:bg-white/[0.08] active:bg-white/[0.1] transition-all duration-300 ease-out border-l-2 border-white/40">
-                  Accueil
-                </Link>
+                {navItems.map((item) => {
+                  const hasSub = "subItems" in item && item.subItems?.length;
+                  const firstSubHref = hasSub ? item.subItems![0].href : null;
+                  const parentSameAsFirst = hasSub && item.href === firstSubHref;
+                  const isActive = location.pathname === item.href || (hasSub && item.subItems!.some((s) => location.pathname === s.href));
 
-                <div className="pt-3 pb-1.5 px-4 flex items-center gap-2.5">
-                  <span className="text-white/35 text-sm">—</span>
-                  <span className="text-[13px] font-semibold uppercase tracking-wider text-white/50">Véhicules</span>
+                  return (
+                    <div key={item.label} className="flex flex-col gap-0.5">
+                      {hasSub ? (
+                        <>
+                          <div className="pt-3 first:pt-0 pb-1 px-3 flex items-center gap-2">
+                            <span className="text-white/30">—</span>
+                            <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/40">
+                              {item.label}
+                            </span>
+                          </div>
+                          {!parentSameAsFirst && (
+                            <Link
+                              to={item.href}
+                              onClick={() => setIsMobileMenuOpen(false)}
+                              className={`min-h-[44px] pl-4 pr-3 flex items-center rounded-lg text-[15px] font-medium transition-colors ${
+                                location.pathname === item.href
+                                  ? "text-white bg-white/[0.06]"
+                                  : "text-white/85 hover:bg-white/[0.04] hover:text-white"
+                              }`}
+                            >
+                              {item.label}
+                            </Link>
+                          )}
+                          {item.subItems!.map((sub) => (
+                            <Link
+                              key={sub.label}
+                              to={sub.href}
+                              onClick={() => setIsMobileMenuOpen(false)}
+                              className={`min-h-[44px] pl-5 pr-3 flex items-center rounded-lg text-[14px] transition-colors border-l border-white/10 ml-3 ${
+                                location.pathname === sub.href
+                                  ? "text-white bg-white/[0.04] border-white/20"
+                                  : "text-white/75 hover:bg-white/[0.03] hover:text-white/95"
+                              }`}
+                            >
+                              {sub.label}
+                            </Link>
+                          ))}
+                        </>
+                      ) : (
+                        <Link
+                          to={item.href}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className={`min-h-[44px] px-3 flex items-center rounded-lg text-[15px] font-medium transition-colors ${
+                            isActive
+                              ? "text-white bg-white/[0.06]"
+                              : "text-white/85 hover:bg-white/[0.04] hover:text-white"
+                          }`}
+                        >
+                          {item.label}
+                        </Link>
+                      )}
+                    </div>
+                  );
+                })}
+
+                <div className="my-2 h-px bg-white/[0.06]" aria-hidden />
+
+                <div className="flex flex-col gap-0.5">
+                  <div className="pt-1 pb-1 px-3 flex items-center gap-2">
+                    <span className="text-white/30">—</span>
+                    <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/40">
+                      Assistant
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { onOpenChat(); setIsMobileMenuOpen(false); }}
+                    className="min-h-[44px] px-3 flex items-center gap-2 rounded-lg text-[14px] font-medium text-white/80 hover:bg-white/[0.04] hover:text-white transition-colors"
+                  >
+                    Rebellion IA
+                  </button>
                 </div>
-                <Link to="/vehicules" onClick={() => setIsMobileMenuOpen(false)} className="min-h-[52px] px-4 flex items-center rounded-2xl text-[17px] font-medium text-white/95 hover:bg-white/[0.06] active:bg-white/[0.1] transition-all duration-300 ease-out">
-                  Catalogue
-                </Link>
-                <Link to="/calculer-prix" onClick={() => setIsMobileMenuOpen(false)} className="min-h-[52px] px-4 flex items-center rounded-2xl text-[17px] font-medium text-white/95 hover:bg-white/[0.06] active:bg-white/[0.1] transition-all duration-300 ease-out">
-                  Calculez le prix
-                </Link>
 
-                <div className="pt-4 pb-1.5 px-4 flex items-center gap-2.5">
-                  <span className="text-white/35 text-sm">—</span>
-                  <span className="text-[13px] font-semibold uppercase tracking-wider text-white/50">Loue ton véhicule</span>
-                </div>
-                <Link to="/loue-ton-vehicule" onClick={() => setIsMobileMenuOpen(false)} className="min-h-[52px] px-4 flex items-center rounded-2xl text-[17px] font-medium text-white/95 hover:bg-white/[0.06] active:bg-white/[0.1] transition-all duration-300 ease-out">
-                  Louer
-                </Link>
-                <Link to="/verifier-ma-demande" onClick={() => setIsMobileMenuOpen(false)} className="min-h-[52px] px-4 flex items-center rounded-2xl text-[17px] font-medium text-white/95 hover:bg-white/[0.06] active:bg-white/[0.1] transition-all duration-300 ease-out">
-                  Voir mes demandes
-                </Link>
-
-                <Link to="/a-propos" onClick={() => setIsMobileMenuOpen(false)} className="min-h-[52px] pl-4 pr-4 flex items-center rounded-2xl text-[17px] font-semibold text-white bg-white/[0.04] hover:bg-white/[0.08] active:bg-white/[0.1] transition-all duration-300 ease-out border-l-2 border-white/40">
-                  À propos
-                </Link>
-                <Link to="/rentabilite" onClick={() => setIsMobileMenuOpen(false)} className="min-h-[52px] px-4 flex items-center rounded-2xl text-[17px] font-medium text-white/95 hover:bg-white/[0.06] active:bg-white/[0.1] transition-all duration-300 ease-out">
-                  Rentabilité
-                </Link>
-                <Link to="/transport" onClick={() => setIsMobileMenuOpen(false)} className="min-h-[52px] px-4 flex items-center rounded-2xl text-[17px] font-medium text-white/95 hover:bg-white/[0.06] active:bg-white/[0.1] transition-all duration-300 ease-out">
-                  Transport
-                </Link>
-                <Link to="/reseaux" onClick={() => setIsMobileMenuOpen(false)} className="min-h-[52px] px-4 flex items-center rounded-2xl text-[17px] font-medium text-white/95 hover:bg-white/[0.06] active:bg-white/[0.1] transition-all duration-300 ease-out">
-                  Réseaux
-                </Link>
-
-                <div className="my-4 mx-2 h-px bg-white/[0.06]" aria-hidden />
-
-                {/* Contact + Espace pro en bas à gauche */}
-                <div className="flex flex-col gap-1.5 w-full items-start">
-                  <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="min-h-[52px] pl-4 pr-4 flex items-center rounded-2xl text-[17px] font-semibold text-white bg-white/[0.04] hover:bg-white/[0.08] active:bg-white/[0.1] transition-all duration-300 ease-out border-l-2 border-white/40">
-                    Contact
-                  </Link>
-                  <Link to="/espace-pro" onClick={() => setIsMobileMenuOpen(false)} className="min-h-[52px] pl-4 pr-4 flex items-center rounded-2xl text-[17px] font-medium text-white/80 hover:bg-white/[0.06] hover:text-white/95 active:bg-white/[0.08] transition-all duration-300 ease-out">
-                    Espace pro
-                  </Link>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => { onOpenChat(); setIsMobileMenuOpen(false); }}
-                  className="min-h-[56px] w-full flex items-center justify-center gap-3 rounded-2xl bg-white text-black font-semibold text-[17px] hover:bg-white/95 active:scale-[0.98] transition-all duration-300 ease-out shadow-[0_2px_16px_rgba(255,255,255,0.12)] mt-4"
-                >
-                  Louer un véhicule
-                  <span className="logo-round w-6 h-6 shrink-0 flex items-center justify-center overflow-hidden"><img src="/rebellion-luxury-logo.png" alt="" className="w-full h-full object-cover opacity-90" /></span>
-                </button>
-
-                <div className="mt-4 min-h-[48px] flex items-center px-4">
-                  <UserAccountDropdown className="w-full justify-start text-white/60 hover:text-white text-[15px] transition-colors duration-300" />
+                <div className="mt-2 pt-2 border-t border-white/[0.06]">
+                  <UserAccountDropdown className="w-full justify-start text-white/60 hover:text-white text-[13px] min-h-[44px] px-3 transition-colors" />
                 </div>
               </nav>
             </motion.div>
