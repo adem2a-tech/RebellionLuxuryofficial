@@ -11,7 +11,8 @@ import {
   SelectValue,
 } from "./ui/select";
 import { getAllVehicles } from "@/data/vehicles";
-import { calculateTotalPrice, getDurationOptionsForVehicle, type DurationKey } from "@/utils/priceCalculation";
+import { calculateTotalPrice, getDurationOptionsForVehicle, FORFAIT_LABEL_KEYS, type DurationKey } from "@/utils/priceCalculation";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const DAY_NAMES = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
 const MONTH_NAMES = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
@@ -46,6 +47,7 @@ function formatReturnDate(date: Date): string {
 }
 
 export default function PriceCalculator() {
+  const { t } = useLanguage();
   const [vehicleSlug, setVehicleSlug] = useState<string>("");
   const [durationKey, setDurationKey] = useState<DurationKey>("24h");
   const [extraKm, setExtraKm] = useState<string>("");
@@ -55,7 +57,9 @@ export default function PriceCalculator() {
   const transportKmNum = Math.max(0, parseInt(transportKm, 10) || 0);
   const startDateObj = new Date();
 
-  const vehicle = vehicleSlug ? getAllVehicles().find((v) => v.slug === vehicleSlug) : null;
+  // Liste unique : flotte de base + véhicules ajoutés (Espace pro) + demandes acceptées — catalogue et calculateur partagent cette source
+  const allVehicles = getAllVehicles();
+  const vehicle = vehicleSlug ? allVehicles.find((v) => v.slug === vehicleSlug) ?? null : null;
   const durationOptions = getDurationOptionsForVehicle(vehicle);
 
   // Valeur affichée dans le Select : toujours une option valide (évite dropdown vide / Radix bug)
@@ -84,22 +88,22 @@ export default function PriceCalculator() {
       <div className="flex items-center gap-2 mb-6">
         <Calculator className="w-6 h-6 text-primary" />
         <h2 className="font-display text-xl md:text-2xl font-bold">
-          Calculez le prix
+          {t("calculator.title")}
         </h2>
       </div>
       <p className="text-muted-foreground text-sm mb-6">
-        Estimation selon le véhicule, le forfait choisi, les km supplémentaires et le transport (Evionnaz → client → Evionnaz à 2 CHF/km).
+        {t("calculator.desc")}
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div className="space-y-2">
-          <Label>Véhicule</Label>
+          <Label>{t("calculator.vehicle")}</Label>
           <Select value={vehicleSlug} onValueChange={(v) => { setVehicleSlug(v); setDurationKey("24h"); }}>
             <SelectTrigger className="bg-background">
-              <SelectValue placeholder="Choisir un véhicule" />
+              <SelectValue placeholder={t("calculator.vehiclePlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              {getAllVehicles().map((v) => (
+              {allVehicles.map((v) => (
                 <SelectItem key={v.slug} value={v.slug}>
                   {v.name} — dès {v.pricePerDay} CHF/j
                 </SelectItem>
@@ -108,25 +112,25 @@ export default function PriceCalculator() {
           </Select>
         </div>
         <div className="space-y-2">
-          <Label>Forfait</Label>
+          <Label>{t("calculator.forfait")}</Label>
           <Select
             value={effectiveDurationKey}
             onValueChange={(v) => setDurationKey(v as DurationKey)}
           >
             <SelectTrigger className="bg-background">
-              <SelectValue placeholder="Choisir un forfait" />
+              <SelectValue placeholder={t("calculator.forfaitPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
               {durationOptions.map((opt) => (
                 <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
+                  {t(FORFAIT_LABEL_KEYS[opt.value])}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-2">
-          <Label>Km supplémentaires (optionnel)</Label>
+          <Label>{t("calculator.extraKm")} (optionnel)</Label>
           <Input
             type="number"
             min={0}
@@ -136,11 +140,11 @@ export default function PriceCalculator() {
             className="bg-background"
           />
           <p className="text-xs text-muted-foreground">
-            {vehicle?.extraKmPriceChf ? `${vehicle.extraKmPriceChf} CHF/km au-delà du forfait` : "Tarif selon véhicule"}
+            {vehicle?.extraKmPriceChf ? `${t("calculator.extraKmHelp")} : ${vehicle.extraKmPriceChf} CHF/km` : t("calculator.accordingToVehicle")}
           </p>
         </div>
         <div className="space-y-2 md:col-span-2">
-          <Label>Km transport (A→B→C)</Label>
+          <Label>{t("calculator.transportKm")}</Label>
           <Input
             type="number"
             min={0}
@@ -149,7 +153,7 @@ export default function PriceCalculator() {
             placeholder="0"
             className="bg-background"
           />
-          <p className="text-xs text-muted-foreground">2 CHF/km — Evionnaz → client → Evionnaz.</p>
+          <p className="text-xs text-muted-foreground">2 CHF/km — {t("calculator.transportHelp")}</p>
         </div>
       </div>
 
@@ -166,7 +170,7 @@ export default function PriceCalculator() {
               {breakdown.vehicleName}
             </p>
             <p className="text-sm text-foreground">
-              Forfait {durationOptions.find((o) => o.value === durationKey)?.label ?? durationKey} — {formatChf(breakdown.locationPrice)}
+              {t(FORFAIT_LABEL_KEYS[durationKey])} — {formatChf(breakdown.locationPrice)}
             </p>
             <p className="text-xs text-muted-foreground">
               {breakdown.kmInclus != null && breakdown.kmInclus > 0
@@ -206,7 +210,7 @@ export default function PriceCalculator() {
             </div>
           )}
           <div className="flex justify-between pt-3 border-t border-border font-bold text-primary text-base">
-            <span>Total à payer</span>
+            <span>{t("calculator.totalToPay")}</span>
             <span>{formatChf(breakdown.total)}</span>
           </div>
         </div>

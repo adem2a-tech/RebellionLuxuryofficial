@@ -7,6 +7,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { UserProvider, useUser } from "@/contexts/UserContext";
 import { ReservationProvider } from "@/contexts/ReservationContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
+import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import IdentificationScreen from "@/components/IdentificationScreen";
 import TransitionScreen from "@/components/TransitionScreen";
 import SiteLayout from "@/components/SiteLayout";
@@ -188,6 +190,8 @@ function AppContent() {
         )}
       </AnimatePresence>
       {phase === "app" && (
+    <LanguageProvider>
+      <CurrencyProvider>
     <BrowserRouter>
       <Routes>
         <Route
@@ -217,6 +221,8 @@ function AppContent() {
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
+      </CurrencyProvider>
+      </LanguageProvider>
       )}
     </>
   );

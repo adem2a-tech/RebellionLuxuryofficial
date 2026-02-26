@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useChat } from "@/contexts/ChatContext";
+import { useCurrency, parseChfPrice } from "@/contexts/CurrencyContext";
 import { getVehicleBySlug } from "@/data/vehicles";
 import { getUnavailableUntil } from "@/data/vehicleReservations";
 import { BOBOLOC_VEHICLES_URL } from "@/data/chatKnowledge";
@@ -46,6 +47,7 @@ function getForfaitIconAndLabel(duration: string): { icon: React.ReactNode; titl
 const VehiculeDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const { openChatForVehicle } = useChat();
+  const { formatPriceBoth } = useCurrency();
   const vehicle = slug ? getVehicleBySlug(slug) : undefined;
   const [mainIndex, setMainIndex] = useState(0);
   const touchStartX = useRef<number | null>(null);
@@ -342,7 +344,10 @@ const VehiculeDetail = () => {
                           </div>
                         </div>
                         <span className={`${accentPrice} text-base shrink-0 tabular-nums`}>
-                          {tier.price}
+                          {(() => {
+                            const chf = parseChfPrice(tier.price);
+                            return chf != null ? formatPriceBoth(chf) : tier.price;
+                          })()}
                         </span>
                       </div>
                       <p className="text-white/50 text-xs">
@@ -368,7 +373,7 @@ const VehiculeDetail = () => {
                 <div className="rounded-md bg-white/[0.04] border border-white/[0.08] px-3 py-2.5 flex items-center gap-2.5">
                   <Info className="w-3.5 h-3.5 text-white/60 shrink-0" />
                   <p className="text-white/70 text-xs">
-                    Km supplémentaire : <span className="font-medium text-white/90">{vehicle.extraKmPriceChf ?? 5} CHF/km</span>
+                    Km supplémentaire : <span className="font-medium text-white/90">{formatPriceBoth(vehicle.extraKmPriceChf ?? 5)}/km</span>
                   </p>
                 </div>
               </div>

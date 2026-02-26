@@ -8,6 +8,9 @@ import { getApprovedVehicles } from "@/data/vehicleRequests";
 import { useVehicleRequests } from "@/contexts/VehicleRequestsContext";
 import { getUnavailableUntil } from "@/data/vehicleReservations";
 import { useReservations } from "@/contexts/ReservationContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useCurrency } from "@/contexts/CurrencyContext";
+import { getPricingTiersInBobolocOrder } from "@/utils/priceCalculation";
 
 interface VehiclesSectionProps {
   onAskQuestion?: (vehicleName: string) => void;
@@ -20,8 +23,8 @@ function isVideoUrl(url: string): boolean {
   return /\.(mp4|webm|ogg|mov)(\?|$)/i.test(url);
 }
 
-/** Carrousel images + vidéos (vidéos à la fin) : centré, sans bordures */
-function VehicleCardCarousel({ images, videos = [], badgeLabel = "Rebellion" }: { images: string[]; videos?: string[]; badgeLabel?: string }) {
+/** Carrousel images + vidéos (vidéos à la fin) : centré, sans bordures. badgePrice = "470 CHF" pour badge /24h. */
+function VehicleCardCarousel({ images, videos = [], badgeLabel = "Rebellion", badgePrice }: { images: string[]; videos?: string[]; badgeLabel?: string; badgePrice?: string }) {
   const [index, setIndex] = useState(0);
   const slides = [...images.slice(0, 10), ...videos.slice(0, 2)];
   const count = slides.length;
@@ -79,6 +82,11 @@ function VehicleCardCarousel({ images, videos = [], badgeLabel = "Rebellion" }: 
       <div className="absolute top-3 left-3 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 px-2.5 py-1 text-[10px] font-medium text-white/90 uppercase tracking-[0.15em] pointer-events-none">
         {badgeLabel}
       </div>
+      {badgePrice && (
+        <div className="absolute top-3 right-3 rounded-lg bg-white/95 text-black px-2.5 py-1.5 text-[11px] font-bold tracking-tight pointer-events-none">
+          {badgePrice} /24h
+        </div>
+      )}
       {count > 1 && (
         <>
           <button
@@ -106,6 +114,8 @@ function VehicleCardCarousel({ images, videos = [], badgeLabel = "Rebellion" }: 
 const VehiclesSection = ({ onAskQuestion, onlyHorsRebellion = false }: VehiclesSectionProps) => {
   const { version } = useVehicleRequests();
   const { version: reservationsVersion } = useReservations();
+  const { t } = useLanguage();
+  const { formatPriceBoth } = useCurrency();
   const vehicles = onlyHorsRebellion ? getApprovedVehicles() : getAllVehicles();
 
   return (
@@ -170,6 +180,7 @@ const VehiclesSection = ({ onAskQuestion, onlyHorsRebellion = false }: VehiclesS
                       images?: string[];
                       video?: string;
                       specs?: { power?: string };
+                      pricing?: { duration: string; km: string; price: string }[];
                     };
                     /* Liste d’images pour le carrousel (imports Vite = URLs string) */
                     const imageList: string[] = Array.isArray(v.images)
@@ -193,7 +204,7 @@ const VehiclesSection = ({ onAskQuestion, onlyHorsRebellion = false }: VehiclesS
                       >
                         <div className="relative h-full block">
                           <div className="relative rounded-xl overflow-hidden h-full min-h-[340px] flex flex-col bg-black border border-white/[0.06] transition-all duration-300 hover:border-white/[0.1] shadow-[0_4px_24px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.03)]">
-                            <VehicleCardCarousel images={imageList} videos={videoList} badgeLabel={onlyHorsRebellion ? "Particulier" : "Rebellion"} />
+                            <VehicleCardCarousel images={imageList} videos={videoList} badgeLabel={onlyHorsRebellion ? "Particulier" : "Rebellion"} badgePrice={v.pricePerDay != null ? `${v.pricePerDay.toLocaleString("fr-CH")} CHF` : undefined} />
                             {onlyHorsRebellion && (
                               <p className="px-4 py-2 text-[11px] text-white/40 bg-black/80 border-t border-white/5">
                                 Ce véhicule n&apos;appartient pas à Rebellion Luxury
@@ -215,11 +226,21 @@ const VehiclesSection = ({ onAskQuestion, onlyHorsRebellion = false }: VehiclesS
                               </p>
                               {v.pricePerDay != null && (
                                 <p className="text-xs text-white/50 font-medium tracking-wide">
-                                  À partir de <span className="text-white/90">{v.pricePerDay.toLocaleString("fr-CH")} CHF</span>/24h
+                                  {t("price.from")} <span className="text-white/90">{formatPriceBoth(v.pricePerDay)}</span>{t("price.perDay")}
                                 </p>
                               )}
+                              {v.pricing && v.pricing.length > 0 && (
+                                <div className="mt-2 space-y-1">
+                                  {getPricingTiersInBobolocOrder(v.pricing).map(({ labelKey, tier }, idx) => (
+                                    <div key={idx} className="flex justify-between items-center text-[11px] text-white/70">
+                                      <span>{t(labelKey)}</span>
+                                      <span className="font-semibold text-white/90 tabular-nums">{tier.price}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                               <span className="inline-flex w-full items-center justify-center gap-1.5 mt-2 py-2 text-[11px] font-medium tracking-[0.2em] uppercase text-white/70 group-hover/card:text-white border border-white/10 rounded-md transition-colors">
-                                Voir le véhicule
+                                {t("cta.viewVehicle")}
                                 <ArrowRight className="w-3.5 h-3.5" />
                               </span>
                             </Link>

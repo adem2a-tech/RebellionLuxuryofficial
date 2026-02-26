@@ -245,7 +245,9 @@ export const VEHICLES_DATA: VehicleData[] = [
 ];
 
 /**
- * Retourne tous les véhicules : flotte de base (modifiable) + admin + demandes acceptées.
+ * Retourne tous les véhicules : flotte de base (Espace pro) + véhicules ajoutés (Espace pro) + demandes acceptées.
+ * Utilisé par le catalogue, le calculateur de prix et les fiches détail — toute modification dans l'Espace pro
+ * (base ou véhicules ajoutés) est reflétée ici après rechargement de la liste.
  */
 export function getAllVehicles(): VehicleData[] {
   const base = getBaseFleet();

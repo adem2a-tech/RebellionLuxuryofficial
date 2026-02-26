@@ -35,15 +35,61 @@ const FORFAIT_PREFIX: Record<DurationKey, string> = {
   "mois": "Mois",
 };
 
-/** Variantes possibles (Espace pro utilise 24h, 48h, Vendredi au dimanche, 7 jours, Mois (30 jours), etc.) */
+/** Variantes possibles (Espace pro, demandes particuliers : 24h, 48h, Vendredi au dimanche, 7 jours, etc.) */
 const FORFAIT_ALIASES: Record<DurationKey, string[]> = {
-  "24h": ["24h", "24 heures", "journée", "journee", "1 jour"],
-  "we_court": ["week-end court", "vendredi au dimanche", "w-e (48h)", "48h"],
-  "we_long": ["week-end long", "vendredi au lundi", "w-e (72h)", "72h"],
-  "semaine_courte": ["semaine courte", "lun-ven", "lundi – vendredi", "5 jours"],
-  "semaine_complete": ["semaine complète", "semaine complete", "7 jours"],
+  "24h": ["24h", "24 heures", "journée", "journee", "journee (24h)", "1 jour", "tarif journalier"],
+  "we_court": ["week-end court", "vendredi au dimanche", "vendredi – dimanche", "w-e (48h)", "48h", "we court"],
+  "we_long": ["week-end long", "vendredi au lundi", "vendredi – lundi", "w-e (72h)", "72h", "we long"],
+  "semaine_courte": ["semaine courte", "lun-ven", "lundi – vendredi", "lundi au vendredi", "5 jours"],
+  "semaine_complete": ["semaine complète", "semaine complete", "7 jours", "semaine"],
   "mois": ["mois (30", "30 jours", "mois"],
 };
+
+/** Normalise pour la comparaison : minuscules, espaces, accents (è/é→e), tirets (en-dash/em-dash → -) */
+function normalizeForMatch(s: string): string {
+  return s
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/[\u2013\u2014\u2212]/g, "-") // en-dash, em-dash, minus
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+}
+
+/** Clé i18n pour libellé court (catalogue / référence) : forfait.24h, forfait.we48, etc. */
+export const FORFAIT_LABEL_KEYS: Record<DurationKey, string> = {
+  "24h": "forfait.24h",
+  "we_court": "forfait.we48",
+  "we_long": "forfait.we72",
+  "semaine_courte": "forfait.lunVen",
+  "semaine_complete": "forfait.semaine",
+  "mois": "forfait.mois",
+};
+
+/** Ordre d'affichage Boboloc : 24h, WE 48h, WE 72h, Lun-Ven, Semaine, Mois */
+const FORFAIT_ORDER: DurationKey[] = ["24h", "we_court", "we_long", "semaine_courte", "semaine_complete", "mois"];
+
+/** Retourne la clé de traduction du forfait à partir de la duration (ex. "24 heures..." → "forfait.24h"). */
+export function getForfaitLabelKeyFromDuration(duration: string): string | null {
+  const d = normalizeForMatch(duration);
+  if (d.startsWith("24 heures") || d.startsWith("24h") || d.includes("tarif journalier")) return FORFAIT_LABEL_KEYS["24h"];
+  if (d.startsWith("week-end court") || d.includes("48h") || (d.includes("vendredi") && d.includes("dimanche"))) return FORFAIT_LABEL_KEYS["we_court"];
+  if (d.startsWith("week-end long") || d.includes("72h") || (d.includes("vendredi") && d.includes("lundi"))) return FORFAIT_LABEL_KEYS["we_long"];
+  if (d.startsWith("semaine courte") || (d.includes("lun") && d.includes("ven"))) return FORFAIT_LABEL_KEYS["semaine_courte"];
+  if (d.startsWith("semaine complete") || d.includes("7 jours")) return FORFAIT_LABEL_KEYS["semaine_complete"];
+  if (d.startsWith("mois") || d.includes("30 jours")) return FORFAIT_LABEL_KEYS["mois"];
+  return null;
+}
+
+/** Retourne les tiers du véhicule dans l'ordre Boboloc (24h, WE 48h, WE 72h, Lun-Ven, Semaine, Mois) pour le catalogue. */
+export function getPricingTiersInBobolocOrder(pricing: PricingTier[]): { labelKey: string; tier: PricingTier }[] {
+  const result: { labelKey: string; tier: PricingTier }[] = [];
+  for (const key of FORFAIT_ORDER) {
+    const tier = pricing.find((t) => getForfaitLabelKeyFromDuration(t.duration) === FORFAIT_LABEL_KEYS[key]);
+    if (tier) result.push({ labelKey: FORFAIT_LABEL_KEYS[key], tier });
+  }
+  return result;
+}
 
 /** Durées disponibles (ordre pour le sélecteur) */
 export const DURATION_OPTIONS: { value: DurationKey; label: string }[] = [
@@ -55,20 +101,31 @@ export const DURATION_OPTIONS: { value: DurationKey; label: string }[] = [
   { value: "mois", label: "Mois (30 jours)" },
 ];
 
-/** Retourne les forfaits disponibles pour un véhicule (ex. Maserati sans "Mois"). Compatible base + Espace pro. */
+/** Les 5 forfaits Boboloc toujours affichés dans le calculateur (24h, WE 48h, WE 72h, Lun-Ven, Semaine). */
+const STANDARD_FORFAIT_KEYS: DurationKey[] = ["24h", "we_court", "we_long", "semaine_courte", "semaine_complete"];
+
+/** Retourne true si le véhicule a un tier qui correspond à ce forfait. */
+function vehicleHasForfait(vehicle: { pricing: PricingTier[] }, durationKey: DurationKey): boolean {
+  const prefixNorm = normalizeForMatch(FORFAIT_PREFIX[durationKey]);
+  const aliases = FORFAIT_ALIASES[durationKey];
+  return vehicle.pricing.some((t) => {
+    const d = normalizeForMatch(t.duration);
+    if (d.startsWith(prefixNorm)) return true;
+    return aliases.some((a) => d.startsWith(normalizeForMatch(a)) || d.includes(normalizeForMatch(a)));
+  });
+}
+
+/** Retourne les forfaits pour le calculateur : toujours 24h, WE 48h, WE 72h, Lun-Ven, Semaine + Mois si le véhicule l'a. */
 export function getDurationOptionsForVehicle(vehicle: { pricing: PricingTier[] } | null) {
   if (!vehicle?.pricing?.length) return DURATION_OPTIONS;
-  const normalized = (s: string) => s.toLowerCase().trim().replace(/\s+/g, " ");
-  const filtered = DURATION_OPTIONS.filter((opt) => {
-    const prefix = FORFAIT_PREFIX[opt.value];
-    const aliases = FORFAIT_ALIASES[opt.value];
-    return vehicle.pricing.some((t) => {
-      const d = normalized(t.duration);
-      if (t.duration.startsWith(prefix)) return true;
-      return aliases.some((a) => d.startsWith(normalized(a)) || d.includes(normalized(a)));
-    });
-  });
-  return filtered.length > 0 ? filtered : DURATION_OPTIONS;
+  const options: typeof DURATION_OPTIONS = [];
+  for (const key of STANDARD_FORFAIT_KEYS) {
+    options.push(DURATION_OPTIONS.find((o) => o.value === key)!);
+  }
+  if (vehicleHasForfait(vehicle, "mois")) {
+    options.push(DURATION_OPTIONS.find((o) => o.value === "mois")!);
+  }
+  return options;
 }
 
 /** Extrait le montant numérique d'un prix "4'490 CHF" ou "950 CHF" */
@@ -91,21 +148,22 @@ function getExtraKmPrice(vehicle: VehicleData): number {
   return vehicle.extraKmPriceChf ?? DEFAULT_EXTRA_KM_PRICE;
 }
 
-/** Trouve le forfait correspondant au forfait sélectionné (24h, week-end, semaine, mois). Compatible base + Espace pro. */
+/** Trouve le forfait correspondant au forfait sélectionné (24h, week-end, semaine, mois). Compatible base + Espace pro + particuliers. */
 function findMatchingTier(
   vehicle: VehicleData,
   durationKey: DurationKey
 ): { tier: PricingTier; label: string } | null {
   const pricing = vehicle.pricing;
   if (!pricing?.length) return null;
-  const prefix = FORFAIT_PREFIX[durationKey];
-  let tier = pricing.find((p) => p.duration.startsWith(prefix));
+  const prefixNorm = normalizeForMatch(FORFAIT_PREFIX[durationKey]);
+  let tier = pricing.find((p) => normalizeForMatch(p.duration).startsWith(prefixNorm));
   if (tier) return { tier, label: tier.duration };
-  const normalized = (s: string) => s.toLowerCase().trim().replace(/\s+/g, " ");
   const aliases = FORFAIT_ALIASES[durationKey];
   for (const alias of aliases) {
-    const a = normalized(alias);
-    tier = pricing.find((p) => normalized(p.duration).startsWith(a) || normalized(p.duration).includes(a));
+    const a = normalizeForMatch(alias);
+    tier = pricing.find(
+      (p) => normalizeForMatch(p.duration).startsWith(a) || normalizeForMatch(p.duration).includes(a)
+    );
     if (tier) return { tier, label: tier.duration };
   }
   return null;
@@ -123,17 +181,18 @@ const FORFAIT_DAYS: Record<DurationKey, number> = {
 /** Détecte si la grille est au format forfaits (24h/24 heures, week-end, 7 jours, etc.) — base ou Espace pro */
 function hasNewFormatPricing(pricing: PricingTier[] | undefined): boolean {
   if (!pricing?.length) return false;
-  const normalized = (s: string) => s.toLowerCase().trim();
   return pricing.some((t) => {
-    const d = normalized(t.duration);
+    const d = normalizeForMatch(t.duration);
     return (
-      t.duration.startsWith("24 heures") ||
-      d === "24h" ||
-      d.startsWith("vendredi au") ||
+      d.startsWith("24 heures") ||
+      d.startsWith("24h") ||
+      d.includes("vendredi") ||
+      d.includes("week-end") ||
       d.includes("7 jours") ||
-      d.startsWith("mois (30") ||
-      d.startsWith("48h") ||
-      d.startsWith("72h")
+      d.includes("semaine") ||
+      d.startsWith("mois") ||
+      d.includes("48h") ||
+      d.includes("72h")
     );
   });
 }
@@ -149,14 +208,16 @@ export function calculatePriceFromSite(
 ): (Omit<PriceBreakdown, "days" | "extraKm"> & { forfaitLabel: string; kmInclus: number; extraKm: number }) | null {
   const vehicle = getVehicleBySlug(vehicleSlug);
   if (!vehicle) return null;
-  // Utiliser les tarifs canoniques si la flotte (ex. localStorage) a encore l'ancien format
   const canonical = VEHICLES_DATA.find((v) => v.slug === vehicleSlug);
-  const pricing =
-    canonical && !hasNewFormatPricing(vehicle.pricing)
-      ? canonical.pricing
-      : vehicle.pricing;
-  const vehicleForCalc: VehicleData = { ...vehicle, pricing };
-  const matched = findMatchingTier(vehicleForCalc, durationKey);
+  // Essayer d'abord avec la grille du véhicule, puis avec la grille canonique si pas de match
+  let pricing = vehicle.pricing ?? [];
+  if (!hasNewFormatPricing(pricing) && canonical?.pricing) pricing = canonical.pricing;
+  let vehicleForCalc: VehicleData = { ...vehicle, pricing };
+  let matched = findMatchingTier(vehicleForCalc, durationKey);
+  if (!matched && canonical?.pricing) {
+    vehicleForCalc = { ...vehicle, pricing: canonical.pricing };
+    matched = findMatchingTier(vehicleForCalc, durationKey);
+  }
   if (!matched) return null;
   const { tier, label } = matched;
   const locationPrice = parsePriceValue(tier.price);
