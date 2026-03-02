@@ -30,17 +30,10 @@ import { ProAuthProvider } from "./contexts/ProAuthContext";
 import { VehicleRequestsProvider } from "./contexts/VehicleRequestsContext";
 import { AdminAuthProvider } from "./contexts/AdminAuthContext";
 
-/** Mettre à true pour afficher la page de remise (maintenance) */
+/** Mettre à true tant que le client ne répond pas — le site reste bloqué sur la page maintenance */
 const MAINTENANCE_REMISE = false;
 
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
-
-const AI_FEATURES = [
-  "Répond à toutes les questions sur les caractéristiques des véhicules (puissance, options, finitions…)",
-  "Aide à comparer les modèles et à choisir selon l’usage",
-  "Note les demandes et les infos des visiteurs pour le suivi",
-  "Assiste en direct les gens qui visitent le site",
-];
 
 function MaintenanceRemiseScreen() {
   return (
@@ -54,6 +47,14 @@ function MaintenanceRemiseScreen() {
         }}
       />
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:48px_48px] pointer-events-none" />
+      {/* Effet grain / texture légère */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.04] mix-blend-overlay"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+          backgroundRepeat: "repeat",
+        }}
+      />
       <div
         className="relative z-10 flex flex-col items-center animate-fade-in opacity-0"
         style={{ animationDelay: "0.1s", animationFillMode: "forwards" }}
@@ -68,46 +69,32 @@ function MaintenanceRemiseScreen() {
         <span className="font-luxury text-xl sm:text-2xl font-semibold tracking-[0.28em] text-white uppercase mb-1">
           Rebellion
         </span>
-        <span className="font-luxury text-lg sm:text-xl font-medium tracking-[0.18em] text-white/90 uppercase mb-8">
+        <span className="font-luxury text-lg sm:text-xl font-medium tracking-[0.18em] text-white/90 uppercase mb-6">
           Luxury
         </span>
       </div>
       <h1
-        className="relative z-10 font-luxury text-2xl sm:text-3xl md:text-4xl font-semibold text-white text-center mb-3 tracking-[0.08em] animate-fade-in opacity-0 max-w-lg"
-        style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}
+        className="relative z-10 font-luxury text-2xl sm:text-3xl font-semibold text-white text-center mb-6 tracking-[0.08em] animate-fade-in opacity-0 max-w-lg"
+        style={{ animationDelay: "0.25s", animationFillMode: "forwards" }}
       >
         Le site est prêt.
       </h1>
       <p
+        className="relative z-10 text-white/70 max-w-md text-center text-sm sm:text-base mb-4 animate-fade-in opacity-0"
+        style={{ animationDelay: "0.35s", animationFillMode: "forwards" }}
+      >
+        Le site se compose à nouveau d’une IA 2x plus compétente, avec des interfaces haut de gamme et un style 3x plus prestigieux. Beaucoup de travail sur la présentation et les références pour amener la clientèle a été mis sur le site par notre équipe.
+      </p>
+      <p
         className="relative z-10 text-white/60 max-w-md text-center text-sm sm:text-base mb-8 animate-fade-in opacity-0"
         style={{ animationDelay: "0.45s", animationFillMode: "forwards" }}
       >
-        Nous finalisons la mise en ligne. Merci de nous contacter pour toute question — le site sera accessible très prochainement.
+        Le site ne s’ouvrira pas tant qu’il n’y a pas de réponse de Rebellion Luxury.
       </p>
-      <div className="text-left max-w-md w-full mb-6">
-        <p className="text-amber-400/90 text-sm font-medium mb-3">Ce que le site propose :</p>
-        <ul className="space-y-2">
-          <li className="text-zinc-400 text-sm flex items-center gap-2">
-            <span className="text-amber-400 shrink-0">✓</span>
-            Interface fluide revue
-          </li>
-          <li className="text-zinc-400 text-sm">
-            <span className="text-amber-400 shrink-0">✓</span>{" "}
-            <span className="font-medium text-zinc-300">IA de fou</span>
-            <ul className="mt-2 ml-4 space-y-1.5 border-l border-zinc-700 pl-3">
-              {AI_FEATURES.map((aiFeature) => (
-                <li key={aiFeature} className="text-zinc-400 text-sm">
-                  {aiFeature}
-                </li>
-              ))}
-            </ul>
-          </li>
-        </ul>
-      </div>
-      <p className="text-zinc-500 text-sm mb-2">Contacter :</p>
       <a
         href="tel:+33669081072"
-        className="text-amber-400 hover:text-amber-300 text-lg font-medium tracking-wide transition-colors"
+        className="relative z-10 text-amber-400 hover:text-amber-300 text-xl font-medium tracking-wide transition-colors animate-fade-in opacity-0"
+        style={{ animationDelay: "0.55s", animationFillMode: "forwards" }}
       >
         07 69 08 10 72
       </a>

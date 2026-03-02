@@ -235,35 +235,15 @@ const Footer = () => {
           </a>
         </motion.div>
 
-        {/* FAQ & Crédits */}
+        {/* Crédits & liens légaux */}
         <motion.div
-          className="pt-8 border-t border-border"
+          className="pt-8 border-top border-border"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <Accordion type="single" collapsible className="max-w-xl mx-auto">
-            <AccordionItem value="creator" className="border-border">
-              <AccordionTrigger className="text-sm font-medium hover:no-underline hover:text-primary py-4">
-                Qui a créé ce site ?
-              </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground text-sm pb-4">
-                <span className="font-semibold text-foreground">{CREATOR.name}</span> a conçu et développé ce site.
-                {" "}
-                <a
-                  href="https://wa.me/33769081072"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-[#25d366] hover:underline"
-                >
-                  <IoLogoWhatsapp className="w-4 h-4 shrink-0" />
-                  Contacter par WhatsApp : 07 69 08 10 72
-                </a>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-          <p className="text-muted-foreground text-sm text-center mt-6">
+          <p className="text-muted-foreground text-sm text-center">
             © {new Date().getFullYear()} Rebellion Luxury. Tous droits réservés.
             {" · "}
             <button
